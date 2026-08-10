@@ -9,10 +9,11 @@ from LessonCodePython.lesson_engine import LessonEngine
 from FixCode.fix_code_engine import FixCodeEngine, INSTRUCTIONS as FIX_WELCOME
 from ui.sidebar import Sidebar
 from ui.chat_panel import ChatPanel
+from ui.icons import python_logo_html_tag
 
 LESSON_WELCOME = (
-    "🐍 សូមស្វាគមន៍មកកាន់ Python AI Assistant!\n"
-    "📚 Lesson Mode : វាយឈ្មោះ Topic ឬជ្រើសពី Sidebar\n"
+    "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
+    "📚 Lesson Mode : វាយឈ្មោះ Topic ឬជ្រើសពី Sidebar<br>"
     "👉 វាយ /start ដើម្បីមើល README ពេញ"
 )
 
@@ -34,7 +35,7 @@ TOPIC_QUESTIONS = {
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("🐍 Nexus AI — Python Assistant")
+        self.setWindowTitle("Nexus AI — Python Assistant")
         self.resize(1000, 720)
         self.setMinimumSize(800, 540)
         self._build()
