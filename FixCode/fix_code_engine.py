@@ -40,8 +40,49 @@ _KNOWN_CALLS = {
 }
 
 # ── similarity: does a token "look like" a print typo?
-#   Strategy: token must share ≥3 of the 5 chars p-r-i-n-t (in order)
-_PRINT_CHARS = list("print")
+#   Strategy: Levenshtein edit distance to "print" must be small (≤2),
+#   which is far stricter than "shares 3 of 5 letters in any order"
+#   (the old rule flagged real words like sprint/point/paint as typos).
+#   Real words that happen to sit close to "print" in edit-distance
+#   terms are also hard-excluded via a safelist below.
+def _levenshtein(a: str, b: str) -> int:
+    """Standard edit distance (insertions, deletions, substitutions)."""
+    if a == b:
+        return 0
+    la, lb = len(a), len(b)
+    if la == 0:
+        return lb
+    if lb == 0:
+        return la
+    prev = list(range(lb + 1))
+    for i in range(1, la + 1):
+        curr = [i] + [0] * lb
+        for j in range(1, lb + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            curr[j] = min(
+                prev[j] + 1,        # deletion
+                curr[j - 1] + 1,    # insertion
+                prev[j - 1] + cost,  # substitution
+            )
+        prev = curr
+    return prev[lb]
+
+
+# Real identifiers/words that legitimately contain or resemble "print" —
+# never flag these as a typo, no matter how close the edit distance is.
+_PRINT_SAFE_WORDS = {
+    "sprint", "sprints", "sprinted", "sprinting",
+    "reprint", "reprints", "imprint", "imprints",
+    "footprint", "footprints", "fingerprint", "fingerprints",
+    "blueprint", "blueprints", "misprint", "misprints", "offprint",
+    "eprint", "preprint", "preprints", "printer", "printers",
+    "printable", "printout", "printouts", "printing",
+    "prints", "printed",
+    "point", "points", "pointer", "pointers", "midpoint", "endpoint",
+    "endpoints", "checkpoint", "checkpoints", "breakpoint", "breakpoints",
+    "viewpoint", "waypoint", "pinpoint", "standpoint",
+    "paint", "paints", "painter",
+}
 
 
 def _print_similarity(word: str) -> bool:
@@ -51,12 +92,11 @@ def _print_similarity(word: str) -> bool:
         return False
     if word in _KNOWN_CALLS or w in _KNOWN_CALLS:
         return False
-    matched = sum(1 for c in _PRINT_CHARS if c in w)
-    if matched < 3:
+    if w in _PRINT_SAFE_WORDS:
         return False
-    if not (3 <= len(w) <= 12):
+    if not (3 <= len(w) <= 9):
         return False
-    return True
+    return _levenshtein(w, "print") <= 3
 
 
 # Matches any identifier immediately followed by (
