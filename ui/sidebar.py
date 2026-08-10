@@ -2,13 +2,14 @@
 ui/sidebar.py
 """
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFrame, QSizePolicy, QScrollArea
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QFont
 
 from LessonCodePython.theme import C, F
+from ui.icons import python_logo_pixmap
 
 TOPICS = [
     ("basic", "🔰 Basic"),
@@ -48,12 +49,25 @@ class Sidebar(QWidget):
         root.setSpacing(4)
 
         # Title
-        title = QLabel("🐍  Nexus AI")
-        title.setStyleSheet(
-            f"color:{C['python_yellow']}; font-size:{F['title']}pt; "
-            f"font-weight:700; padding:4px 8px 8px;"
+        title_row = QWidget()
+        title_lay = QHBoxLayout(title_row)
+        title_lay.setContentsMargins(8, 6, 8, 10)
+        title_lay.setSpacing(10)
+
+        icon_lbl = QLabel()
+        icon_lbl.setPixmap(python_logo_pixmap(38))
+        icon_lbl.setFixedSize(38, 38)
+        title_lay.addWidget(icon_lbl)
+
+        text_lbl = QLabel("Nexus AI")
+        text_lbl.setStyleSheet(
+            f"color:{C['python_yellow']}; font-size:{F['title'] + 4}pt; "
+            f"font-weight:700;"
         )
-        root.addWidget(title)
+        title_lay.addWidget(text_lbl)
+        title_lay.addStretch(1)
+
+        root.addWidget(title_row)
         root.addWidget(self._hr())
 
         # Mode buttons
