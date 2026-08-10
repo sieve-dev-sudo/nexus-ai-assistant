@@ -8,6 +8,7 @@ Rules:
   R2. Remove trailing semicolons
   R3. Fix unclosed quotes / parentheses
   R4. Evaluate and show output of print() calls
+  R8. Fix Python 2-style print statement: print "x" → print("x")
 """
 
 import re
@@ -161,6 +162,53 @@ def _fix_semicolons(code: str):
                            "លុប ';' ចេញ"))
         else:
             result.append(line)
+    return "\n".join(result), issues
+
+
+# ── R8: Python 2-style print statement (no parentheses)
+#   print "x"        →  print("x")
+#   print x, y        →  print(x, y)
+#   print "Sum:", x    →  print("Sum:", x)
+# Case-insensitive so it also normalises `Print "x"` in one shot.
+_PY2_PRINT_RE = re.compile(r'^(\s*)print(?![A-Za-z0-9_(])\s+(\S.*)$', re.IGNORECASE)
+
+# Things that legitimately follow the word "print" without being
+# Python-2 print arguments — must NOT be wrapped in print(...).
+_PY2_PRINT_SKIP_PREFIXES = ("=", "==", "!=", "<=", ">=", "+=", "-=", "*=",
+                             "/=", "//=", "%=", "**=", ".", ",")
+
+
+def _fix_print_statement(code: str):
+    """R8: detect & wrap Python 2-style `print` statements."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        m = _PY2_PRINT_RE.match(line)
+        if not m:
+            result.append(line)
+            continue
+
+        indent, args = m.group(1), m.group(2).rstrip()
+
+        # Already a call with a space before '(' → e.g. `print ("x")`; leave it.
+        if args.startswith("("):
+            result.append(line)
+            continue
+
+        # `print = 5`, `print.something`, `print == x` etc are not the
+        # Python 2 statement — they're valid code that merely starts
+        # with the word "print". Leave untouched.
+        if any(args.startswith(p) for p in _PY2_PRINT_SKIP_PREFIXES):
+            result.append(line)
+            continue
+
+        new_line = f"{indent}print({args})"
+        result.append(new_line)
+        issues.append((lineno,
+                       "Python 2 print statement (គ្មាន វង់ក្រចក) : "
+                       "Python 3 តម្រូវឲ្យប្រើ print(...)",
+                       f"print {args}  →  print({args})"))
     return "\n".join(result), issues
 
 
@@ -427,6 +475,9 @@ def _analyze(code: str) -> str:
 
     code, i2 = _fix_semicolons(code)
     issues.extend(i2)
+
+    code, i7 = _fix_print_statement(code)
+    issues.extend(i7)
 
     code, i3 = _fix_quotes_parens(code)
     issues.extend(i3)
