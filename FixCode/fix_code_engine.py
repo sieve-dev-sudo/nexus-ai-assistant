@@ -3,13 +3,14 @@ FixCode/fix_code_engine.py  — 100% LOCAL, no API
 Rules:
   R0. Any word ending with ( that is NOT a known builtin/keyword
       but looks like a typo of print → replace with print(
-      e.g. printf(  prinTfff(  Printtf(  PrInt(  → print(
+      e.g. printf(  Printtf(  PrInt(  prnit(  → print(
   R1. Normalize print case variants → print
   R2. Remove trailing semicolons
   R3. Fix unclosed quotes / parentheses
   R4. Evaluate and show output of print() calls
   R8. Fix Python 2-style print statement: print "x" → print("x")
   R9. Fix invalid comparison operators: =< => <> → <= >= !=
+  R10. Fix common keyword misspellings (exact match): retrun → return, etc.
 """
 
 import re
@@ -84,6 +85,7 @@ _PRINT_SAFE_WORDS = {
     "endpoints", "checkpoint", "checkpoints", "breakpoint", "breakpoints",
     "viewpoint", "waypoint", "pinpoint", "standpoint",
     "paint", "paints", "painter",
+    "prime", "primes", "pride",
 }
 
 
@@ -98,7 +100,7 @@ def _print_similarity(word: str) -> bool:
         return False
     if not (3 <= len(w) <= 9):
         return False
-    return _levenshtein(w, "print") <= 3
+    return _levenshtein(w, "print") <= 2
 
 
 # Matches any identifier immediately followed by (
@@ -106,7 +108,7 @@ _CALL_RE = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*)\s*\(')
 
 
 def _fix_print_typos(code: str):
-    """R0: replace print-like typos (printf, Printtf, prinTfff …) with print."""
+    """R0: replace print-like typos (printf, Printtf, prnit …) with print."""
     issues = []
     lines = code.splitlines()
     result = []
@@ -275,6 +277,58 @@ def _fix_operators_in_line(line: str):
         out.append(c)
         i += 1
     return "".join(out), found
+
+
+# ── R10: common keyword misspellings (exact match only — no fuzzy
+# matching here, unlike R0, so this can never mangle a real identifier
+# that merely looks similar).
+_KEYWORD_TYPOS = {
+    # return
+    "retrun": "return", "retrn": "return", "rturn": "return",
+    "reutrn": "return",
+    # import
+    "improt": "import", "imoprt": "import", "iport": "import",
+    "impotr": "import",
+    # booleans
+    "flase": "False", "Flase": "False", "FLASE": "False",
+    "ture": "True", "Ture": "True",
+    # else
+    "els": "else",
+    # while
+    "wile": "while", "whlie": "while",
+    # class
+    "calss": "class", "clas": "class",
+    # def
+    "dfe": "def",
+}
+
+_KEYWORD_TYPO_RE = re.compile(
+    r'\b(' + '|'.join(re.escape(k) for k in _KEYWORD_TYPOS) + r')\b'
+)
+
+
+def _fix_keyword_typos(code: str):
+    """R10: exact-match dictionary of common keyword misspellings."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        # Skip whole-line comments outright — never touch comment text.
+        if line.lstrip().startswith("#"):
+            result.append(line)
+            continue
+
+        def _repl(m):
+            typo = m.group(1)
+            correct = _KEYWORD_TYPOS[typo]
+            issues.append((lineno,
+                           f"'{typo}' ប្រហែលជា typo នៃ keyword '{correct}'",
+                           f"{typo}  →  {correct}"))
+            return correct
+
+        new_line = _KEYWORD_TYPO_RE.sub(_repl, line)
+        result.append(new_line)
+    return "\n".join(result), issues
 
 
 # ── R3: unclosed quotes / parens
@@ -546,6 +600,9 @@ def _analyze(code: str) -> str:
 
     code, i8 = _fix_invalid_operators(code)
     issues.extend(i8)
+
+    code, i9 = _fix_keyword_typos(code)
+    issues.extend(i9)
 
     code, i3 = _fix_quotes_parens(code)
     issues.extend(i3)
