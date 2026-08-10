@@ -9,6 +9,7 @@ Rules:
   R3. Fix unclosed quotes / parentheses
   R4. Evaluate and show output of print() calls
   R8. Fix Python 2-style print statement: print "x" → print("x")
+  R9. Fix invalid comparison operators: =< => <> → <= >= !=
 """
 
 import re
@@ -210,6 +211,70 @@ def _fix_print_statement(code: str):
                        "Python 3 តម្រូវឲ្យប្រើ print(...)",
                        f"print {args}  →  print({args})"))
     return "\n".join(result), issues
+
+# ── R9: invalid / legacy comparison operators
+_INVALID_OPS = {
+    "=<": "<=",
+    "=>": ">=",
+    "<>": "!=",
+}
+
+
+def _fix_invalid_operators(code: str):
+    """R9: `=<` `=>` `<>` (wrong order / Python-2 leftovers) → valid ops."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        fixed_line, found = _fix_operators_in_line(line)
+        result.append(fixed_line)
+        for old, new in found:
+            issues.append((lineno,
+                           f"'{old}' មិនមែន operator ត្រឹមត្រូវក្នុង Python : "
+                           f"ប្រហែលជាចង់ប្រើ '{new}'",
+                           f"{old}  →  {new}"))
+    return "\n".join(result), issues
+
+
+def _fix_operators_in_line(line: str):
+    """Replace invalid operators, but never inside string literals."""
+    found = []
+    in_str = False
+    q_char = None
+    out = []
+    i = 0
+    n = len(line)
+    while i < n:
+        c = line[i]
+        if in_str:
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(line[i + 1])
+                i += 2
+                continue
+            if c == q_char:
+                in_str = False
+                q_char = None
+            i += 1
+            continue
+
+        if c in ('"', "'"):
+            in_str = True
+            q_char = c
+            out.append(c)
+            i += 1
+            continue
+
+        two = line[i:i + 2]
+        if two in _INVALID_OPS:
+            out.append(_INVALID_OPS[two])
+            found.append((two, _INVALID_OPS[two]))
+            i += 2
+            continue
+
+        out.append(c)
+        i += 1
+    return "".join(out), found
 
 
 # ── R3: unclosed quotes / parens
@@ -478,6 +543,9 @@ def _analyze(code: str) -> str:
 
     code, i7 = _fix_print_statement(code)
     issues.extend(i7)
+
+    code, i8 = _fix_invalid_operators(code)
+    issues.extend(i8)
 
     code, i3 = _fix_quotes_parens(code)
     issues.extend(i3)
