@@ -12,6 +12,7 @@ from PyQt5.QtGui import QPalette, QColor
 
 from LessonCodePython.theme import C
 from ui.main_window import MainWindow
+from ui.icons import python_logo_icon
 
 
 def build_dark_palette() -> QPalette:
@@ -34,7 +35,9 @@ def main():
     app.setApplicationName("Nexus AI — Python Assistant")
     app.setStyle("Fusion")
     app.setPalette(build_dark_palette())
+    app.setWindowIcon(python_logo_icon(256))
     win = MainWindow()
+    win.setWindowTitle("Nexus AI — Python Assistant")
     win.show()
     sys.exit(app.exec_())
 
