@@ -5,10 +5,10 @@ ui/message_bubble.py
 import re
 from PyQt5.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout,
-    QLabel, QSizePolicy, QTextEdit
+    QLabel, QSizePolicy, QTextEdit, QPushButton
 )
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QFont, QFontMetrics
+from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtGui import QFont, QFontMetrics, QGuiApplication
 
 from LessonCodePython.theme import C, F
 from ui.avatars import AvatarLabel, TypingDots
@@ -46,6 +46,34 @@ class CodeBlock(QTextEdit):
 
         self._target_h = self._calc_height(code)
         self.setFixedHeight(self._target_h)
+
+        # Copy button — floats over the top-right corner of the block.
+        self._copy_btn = QPushButton("📋 Copy", self)
+        self._copy_btn.setCursor(Qt.PointingHandCursor)
+        self._copy_btn.setStyleSheet(
+            f"QPushButton {{ background:{C['bg_card']}; "
+            f"color:{C['text_secondary']}; border:1px solid {C['border']}; "
+            f"border-radius:6px; padding:2px 8px; font-size:{F['label']}pt; }}"
+            f"QPushButton:hover {{ background:{C['border']}; }}"
+        )
+        self._copy_btn.clicked.connect(self._copy_code)
+        self._copy_btn.adjustSize()
+        self._position_copy_button()
+
+    def _position_copy_button(self):
+        margin = 6
+        self._copy_btn.move(
+            max(self.width() - self._copy_btn.width() - margin, margin), margin
+        )
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._position_copy_button()
+
+    def _copy_code(self):
+        QGuiApplication.clipboard().setText(self.toPlainText())
+        self._copy_btn.setText("✓ Copied")
+        QTimer.singleShot(1200, lambda: self._copy_btn.setText("📋 Copy"))
 
     def _calc_height(self, code: str) -> int:
         fm = QFontMetrics(self._font)
