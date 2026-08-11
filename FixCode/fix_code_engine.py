@@ -11,6 +11,10 @@ Rules:
   R8. Fix Python 2-style print statement: print "x" → print("x")
   R9. Fix invalid comparison operators: =< => <> → <= >= !=
   R10. Fix common keyword misspellings (exact match): retrun → return, etc.
+  R11. Fix `else if` (C/JS style) → `elif`
+  R12. Fix Python 2 `raw_input(` → `input(`
+  R13. Fix `++` / `--` → `+= 1` / `-= 1` (no increment/decrement in Python)
+  R14. Fix unclosed `[` `]` and `{` `}` (extends R3's paren logic)
 """
 
 import re
@@ -376,17 +380,19 @@ def _fix_quotes_parens(code: str):
 
 
 def _fix_line(line: str, lineno: int):
-    """Scan one line for unclosed quotes/parens. Triple-quote markers
-    (\"\"\" or \'\'\') are matched as a 3-char unit, distinct from a normal
-    single quote, so a docstring's internal apostrophes/quotes don't
-    confuse the paren/quote balance. Returns (fixed_line, issues,
+    """Scan one line for unclosed quotes/parens/brackets/braces. Triple-quote
+    markers (\"\"\" or \'\'\') are matched as a 3-char unit, distinct from a
+    normal single quote, so a docstring's internal apostrophes/quotes
+    don't confuse the balance. Returns (fixed_line, issues,
     open_triple_marker_or_None) — the third value tells the caller the
     triple-quoted string is still open at end-of-line and must continue
     on the next line."""
     issues = []
     in_str = False
     q_char = None
-    depth = 0
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
     i = 0
     n = len(line)
     out = []
@@ -426,9 +432,17 @@ def _fix_line(line: str, lineno: int):
             continue
 
         if c == "(":
-            depth += 1
+            paren_depth += 1
         elif c == ")":
-            depth = max(depth - 1, 0)
+            paren_depth = max(paren_depth - 1, 0)
+        elif c == "[":
+            bracket_depth += 1
+        elif c == "]":
+            bracket_depth = max(bracket_depth - 1, 0)
+        elif c == "{":
+            brace_depth += 1
+        elif c == "}":
+            brace_depth = max(brace_depth - 1, 0)
         out.append(c)
         i += 1
 
@@ -438,12 +452,105 @@ def _fix_line(line: str, lineno: int):
         issues.append((lineno,
                        f"Quote '{q_char}' មិនបានបិទ string",
                        f"បន្ថែម '{q_char}' នៅចុង"))
-    if depth > 0:
-        added.extend([")"] * depth)
+    if paren_depth > 0:
+        added.extend([")"] * paren_depth)
         issues.append((lineno,
-                       f"'(' {depth} ដងមិនបានបិទ",
-                       f"បន្ថែម '{')' * depth}' នៅចុង"))
+                       f"'(' {paren_depth} ដងមិនបានបិទ",
+                       f"បន្ថែម '{')' * paren_depth}' នៅចុង"))
+    if bracket_depth > 0:
+        added.extend(["]"] * bracket_depth)
+        issues.append((lineno,
+                       f"'[' {bracket_depth} ដងមិនបានបិទ",
+                       f"បន្ថែម '{']' * bracket_depth}' នៅចុង"))
+    if brace_depth > 0:
+        added.extend(["}"] * brace_depth)
+        issues.append((lineno,
+                       f"'{{' {brace_depth} ដងមិនបានបិទ",
+                       f"បន្ថែម '{'}' * brace_depth}' នៅចុង"))
     return "".join(out) + "".join(added), issues, triple_open
+
+
+# ── R11: `else if` (C/JS style) → `elif`
+_ELSE_IF_RE = re.compile(r'^(\s*)else\s+if\b(.*)$')
+
+
+def _fix_else_if(code: str):
+    """R11: `else if x:` → `elif x:` (invalid in Python — no 'else if')."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        m = _ELSE_IF_RE.match(line)
+        if m and not line.lstrip().startswith("#"):
+            indent, rest = m.group(1), m.group(2)
+            new_line = f"{indent}elif{rest}"
+            result.append(new_line)
+            issues.append((lineno,
+                           "'else if' មិនមែន Python syntax : Python ប្រើ 'elif'",
+                           "else if  →  elif"))
+        else:
+            result.append(line)
+    return "\n".join(result), issues
+
+
+# ── R12: Python 2 `raw_input(` → `input(`
+_RAW_INPUT_RE = re.compile(r'\braw_input\s*\(')
+
+
+def _fix_raw_input(code: str):
+    """R12: `raw_input(` (Python 2) → `input(` (Python 3)."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        if _RAW_INPUT_RE.search(line) and not line.lstrip().startswith("#"):
+            new_line = _RAW_INPUT_RE.sub("input(", line)
+            result.append(new_line)
+            issues.append((lineno,
+                           "'raw_input()' ជា Python 2 : Python 3 ប្រើ 'input()'",
+                           "raw_input(  →  input("))
+        else:
+            result.append(line)
+    return "\n".join(result), issues
+
+
+# ── R13: `++` / `--` (Python has no increment/decrement operators)
+_INCDEC_POSTFIX_RE = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*)\s*(\+\+|--)')
+_INCDEC_PREFIX_RE = re.compile(r'(\+\+|--)\s*([A-Za-z_][A-Za-z0-9_]*)\b')
+
+
+def _fix_increment_decrement(code: str):
+    """R13: `x++`/`x--`/`++x`/`--x` → `x += 1` / `x -= 1`."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        if line.lstrip().startswith("#"):
+            result.append(line)
+            continue
+        new_line = line
+        found = []
+
+        def _repl_post(m):
+            name, op = m.group(1), m.group(2)
+            found.append((f"{name}{op}", f"{name} {'+=' if op == '++' else '-='} 1"))
+            return f"{name} {'+=' if op == '++' else '-='} 1"
+
+        new_line = _INCDEC_POSTFIX_RE.sub(_repl_post, new_line)
+
+        def _repl_pre(m):
+            op, name = m.group(1), m.group(2)
+            found.append((f"{op}{name}", f"{name} {'+=' if op == '++' else '-='} 1"))
+            return f"{name} {'+=' if op == '++' else '-='} 1"
+
+        new_line = _INCDEC_PREFIX_RE.sub(_repl_pre, new_line)
+
+        result.append(new_line)
+        for old, new in found:
+            issues.append((lineno,
+                           f"'{old}' Python គ្មាន increment/decrement operator",
+                           f"{old}  →  {new}"))
+    return "\n".join(result), issues
 
 
 # ── R5: detect missing colons after control flow statements
@@ -700,6 +807,15 @@ def _analyze(code: str) -> str:
 
     code, i9 = _fix_keyword_typos(code)
     issues.extend(i9)
+
+    code, i10 = _fix_else_if(code)
+    issues.extend(i10)
+
+    code, i11 = _fix_raw_input(code)
+    issues.extend(i11)
+
+    code, i12 = _fix_increment_decrement(code)
+    issues.extend(i12)
 
     code, i3 = _fix_quotes_parens(code)
     issues.extend(i3)
