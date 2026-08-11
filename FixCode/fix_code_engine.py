@@ -331,43 +331,107 @@ def _fix_keyword_typos(code: str):
     return "\n".join(result), issues
 
 
-# ── R3: unclosed quotes / parens
+# ── R3: unclosed quotes / parens (+ triple-quote block awareness)
 def _fix_quotes_parens(code: str):
+    """Fix unclosed quotes/parens. Triple-quoted strings (\"\"\"...\"\"\")
+    are recognised as ONE block that can legitimately span many lines —
+    content inside an open triple-quote is left completely untouched
+    (it's documentation, not code to fix) instead of being mis-parsed
+    one line at a time."""
     issues = []
     lines = code.splitlines()
     result = []
+    triple_marker = None  # None, or the open '"""'/"'''" we're inside
+
     for lineno, line in enumerate(lines, 1):
-        fixed_line, li = _fix_line(line, lineno)
+        if triple_marker:
+            close_idx = line.find(triple_marker)
+            if close_idx == -1:
+                # entire line is inside the triple-quoted string — leave as-is
+                result.append(line)
+                continue
+            # string closes partway through this line; only the remainder
+            # after the closing marker is real code that needs checking
+            head = line[:close_idx + 3]
+            tail = line[close_idx + 3:]
+            triple_marker = None
+            fixed_tail, li, still_open = _fix_line(tail, lineno)
+            issues.extend(li)
+            result.append(head + fixed_tail)
+            triple_marker = still_open
+            continue
+
+        fixed_line, li, still_open = _fix_line(line, lineno)
         issues.extend(li)
         result.append(fixed_line)
+        triple_marker = still_open
+
+    if triple_marker:
+        result.append(triple_marker)
+        issues.append((len(lines),
+                       f"Triple-quote string ({triple_marker}) មិនបានបិទ",
+                       f"បន្ថែម {triple_marker} នៅចុង file"))
+
     return "\n".join(result), issues
 
 
 def _fix_line(line: str, lineno: int):
+    """Scan one line for unclosed quotes/parens. Triple-quote markers
+    (\"\"\" or \'\'\') are matched as a 3-char unit, distinct from a normal
+    single quote, so a docstring's internal apostrophes/quotes don't
+    confuse the paren/quote balance. Returns (fixed_line, issues,
+    open_triple_marker_or_None) — the third value tells the caller the
+    triple-quoted string is still open at end-of-line and must continue
+    on the next line."""
     issues = []
     in_str = False
     q_char = None
     depth = 0
     i = 0
-    chars = list(line)
-    while i < len(chars):
-        c = chars[i]
+    n = len(line)
+    out = []
+    triple_open = None
+
+    while i < n:
+        c = line[i]
+
         if in_str:
-            if c == "\\":
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(line[i + 1])
                 i += 2
                 continue
             if c == q_char:
                 in_str = False
                 q_char = None
-        else:
-            if c in ('"', "'"):
-                in_str = True
-                q_char = c
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                depth = max(depth - 1, 0)
+            i += 1
+            continue
+
+        if c in ('"', "'"):
+            triple = c * 3
+            if line[i:i + 3] == triple:
+                close_pos = line.find(triple, i + 3)
+                if close_pos != -1:
+                    out.append(line[i:close_pos + 3])
+                    i = close_pos + 3
+                else:
+                    out.append(line[i:])
+                    triple_open = triple
+                    i = n
+                continue
+            in_str = True
+            q_char = c
+            out.append(c)
+            i += 1
+            continue
+
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth = max(depth - 1, 0)
+        out.append(c)
         i += 1
+
     added = []
     if in_str:
         added.append(q_char)
@@ -379,7 +443,7 @@ def _fix_line(line: str, lineno: int):
         issues.append((lineno,
                        f"'(' {depth} ដងមិនបានបិទ",
                        f"បន្ថែម '{')' * depth}' នៅចុង"))
-    return line + "".join(added), issues
+    return "".join(out) + "".join(added), issues, triple_open
 
 
 # ── R5: detect missing colons after control flow statements
