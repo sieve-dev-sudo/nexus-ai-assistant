@@ -435,13 +435,15 @@ def _fix_logic_errors(code: str):
     return "\n".join(result), issues
 
 
-# ── R7: detect indentation issues (mixed tabs/spaces or inconsistent indent)
-def _detect_indentation_issues(code: str):
+# ── R7: mixed tabs/spaces (normalizes tabs → 4 spaces) + big indent jumps
+def _fix_indentation_issues(code: str):
+    """Detect AND fix mixed tabs/spaces; only touches leading whitespace —
+    tabs inside string content elsewhere on a line are never touched."""
     issues = []
     lines = code.splitlines()
+
     indent_types = set()
-    indent_levels = []
-    for lineno, line in enumerate(lines, 1):
+    for line in lines:
         if not line.strip():
             continue
         leading = line[:len(line) - len(line.lstrip('\t '))]
@@ -449,12 +451,30 @@ def _detect_indentation_issues(code: str):
             indent_types.add('tabs')
         if leading.startswith(' '):
             indent_types.add('spaces')
-        count = leading.count(' ') + leading.count('\t') * 8
-        indent_levels.append(count)
-    if len(indent_types) > 1:
+    mixed = len(indent_types) > 1
+
+    result = []
+    for line in lines:
+        if not line.strip():
+            result.append(line)
+            continue
+        content = line.lstrip('\t ')
+        leading = line[:len(line) - len(content)]
+        if '\t' in leading:
+            leading = leading.replace('\t', '    ')
+        result.append(leading + content)
+
+    if mixed:
         issues.append((1,
-                       "Mixed tabs and spaces detected : ប្រើ spaces ផ្ទាល់ខ្លួន",
-                       "ប្រើ spaces មួយគ្រប់គ្រាន់ (ទូទៅ 4 spaces) និងចៀសវាង tabs"))
+                       "Mixed tabs and spaces detected : បានប្តូរ tab ទាំងអស់ទៅ 4 spaces",
+                       "tab  →  4 spaces (ស្វ័យប្រវត្តិ)"))
+
+    indent_levels = []
+    for line in result:
+        if not line.strip():
+            continue
+        leading = line[:len(line) - len(line.lstrip(' '))]
+        indent_levels.append(len(leading))
     prev = 0
     for idx, lvl in enumerate(indent_levels, 1):
         if lvl - prev > 12:
@@ -462,7 +482,7 @@ def _detect_indentation_issues(code: str):
                            "Indentation jump too large : ប្រហែលមាន indentation មិនត្រឹមត្រូវ",
                            "ពិនិត្យ spacing និង align blocks"))
         prev = lvl
-    return issues
+    return "\n".join(result), issues
 
 
 def _compute_output(code: str) -> list:
@@ -626,7 +646,7 @@ def _analyze(code: str) -> str:
     code, i5 = _fix_logic_errors(code)
     issues.extend(i5)
 
-    i6 = _detect_indentation_issues(code)
+    code, i6 = _fix_indentation_issues(code)
     issues.extend(i6)
 
     output_lines = _compute_output(code)
