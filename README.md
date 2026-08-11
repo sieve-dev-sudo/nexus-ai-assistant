@@ -95,6 +95,12 @@ Nexus-AI-Assistant/
 6. **Logic error** : ប្រើ `=` ជំនួស `==` ក្នុង condition
 7. **Indentation** : លាយ tabs និង spaces, ឬ indent មិនប្រក្រតី
 8. **គណនា Output** : ប៉ាន់ស្មានលទ្ធផលពី `print()` ដោយប្រើ Python AST
+9. **Python 2 print statement** : `print "x"` → `print("x")`
+10. **Invalid comparison operators** : `=<` `=>` `<>` → `<=` `>=` `!=`
+11. **Keyword misspellings** : `retrun`, `improt`, `flase`, `ture`, `els` ជាដើម
+12. **`else if`** → `elif`
+13. **Python 2 `raw_input()`** → `input()`
+14. **`++` / `--`** → `+= 1` / `-= 1`
 
 **របៀបប្រើ:** Paste កូដ Python ចូល input bar រួចចុច Send ( Shift+Enter = ចុះបន្ទាត់ថ្មី ) ។
 
@@ -110,5 +116,5 @@ Nexus-AI-Assistant/
 
 - App នេះមិនតម្រូវឱ្យមាន Internet ឬ API Key ទេ ( 100% Local Logic )
 - សម្រាប់គោលបំណងសិក្សា / Demo : មិនមែនជា AI Model ពិតប្រាកដ (LLM) ទេ គឺជា Rule-based system
-- Desktop AI Chatbot Application សម្រាប់បង្រៀន និងកែកូដ Python សាងសង់ដោយ **PyQt5** 
+- Desktop AI Chatbot Application សម្រាប់បង្រៀន និងកែកូដ Python សាងសង់ដោយ **PyQt5**
 - App នេះដំណើរការជា **Rule-based AI** ១០០% ក្នុងម៉ាស៊ីន Local និង គ្មានការហៅ API ខាងក្រៅ ឬប្រើ Internet ទេ។
