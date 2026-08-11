@@ -413,19 +413,26 @@ def _fix_missing_colons(code: str):
     return "\n".join(result), issues
 
 
-# ── R6: detect common logic errors (assignment in condition)
-def _detect_logic_errors(code: str):
+# ── R6: assignment (=) instead of comparison (==) inside if/while
+def _fix_logic_errors(code: str):
+    """Detect AND fix `=` where `==` was almost certainly intended."""
     issues = []
     lines = code.splitlines()
+    result = []
     for lineno, line in enumerate(lines, 1):
         stripped = line.lstrip()
-        if stripped.startswith("if ") or stripped.startswith("while "):
-            cond_part = line
-            if " = " in cond_part and "==" not in cond_part and "!=" not in cond_part:
-                issues.append((lineno,
-                               "អាច assignment (=) ក្នុង condition — ប្រហែលជាចង់ប្រើ '=='",
-                               "ផ្លាស់ប្តូរ '=' ទៅ '==' ប្រសិនជាចង់ប្រៀបធៀប"))
-    return issues
+        is_condition = stripped.startswith("if ") or stripped.startswith("while ")
+        # " = " (spaced, single '=') never matches inside ==, !=, <=, >=,
+        # or +=/-=/etc, so this is safe to detect on the raw line.
+        if is_condition and " = " in line and "==" not in line and "!=" not in line:
+            new_line = line.replace(" = ", " == ")
+            result.append(new_line)
+            issues.append((lineno,
+                           "អាច assignment (=) ក្នុង condition — ប្រហែលជាចង់ប្រើ '=='",
+                           "ផ្លាស់ប្តូរ '=' ទៅ '==' ក្នុង condition"))
+        else:
+            result.append(line)
+    return "\n".join(result), issues
 
 
 # ── R7: detect indentation issues (mixed tabs/spaces or inconsistent indent)
@@ -616,7 +623,7 @@ def _analyze(code: str) -> str:
     code, i4 = _fix_missing_colons(code)
     issues.extend(i4)
 
-    i5 = _detect_logic_errors(code)
+    code, i5 = _fix_logic_errors(code)
     issues.extend(i5)
 
     i6 = _detect_indentation_issues(code)
