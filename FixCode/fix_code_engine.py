@@ -17,6 +17,7 @@ Rules:
   R14. Fix unclosed `[` `]` and `{` `}` (extends R3's paren logic)
   R15. Fix missing f-string prefix: "{x}" → f"{x}"
   R16. Warn: mutable default argument def f(x=[]): (detect only)
+  R17. Warn: name used but never defined/imported in file (detect only)
 """
 
 import re
@@ -656,6 +657,102 @@ def _detect_mutable_defaults(code: str):
     return issues
 
 
+# ── R17: possibly-undefined name (detect only)
+#   Uses a simplified "whole-file bag of names" model rather than true
+#   per-scope resolution: a name defined ANYWHERE in the file (any
+#   function, any assignment) counts as defined everywhere. This is
+#   deliberately permissive — it will miss some real scope bugs, but
+#   it will never falsely warn about a name that legitimately exists
+#   somewhere in the file, which matters far more for a "just warn"
+#   feature than catching every edge case.
+_EXTRA_KNOWN_NAMES = {"self", "cls", "__name__", "__file__", "__doc__",
+                      "__class__", "__module__", "__qualname__"}
+
+
+def _collect_defined_names(tree) -> set:
+    defined = set(_EXTRA_KNOWN_NAMES)
+
+    def add_target(node):
+        if isinstance(node, ast.Name):
+            defined.add(node.id)
+        elif isinstance(node, (ast.Tuple, ast.List)):
+            for el in node.elts:
+                add_target(el)
+        elif isinstance(node, ast.Starred):
+            add_target(node.value)
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            defined.add(node.name)
+            a = node.args
+            for arglist in (a.posonlyargs, a.args, a.kwonlyargs):
+                for arg in arglist:
+                    defined.add(arg.arg)
+            if a.vararg:
+                defined.add(a.vararg.arg)
+            if a.kwarg:
+                defined.add(a.kwarg.arg)
+        elif isinstance(node, ast.Lambda):
+            a = node.args
+            for arglist in (a.posonlyargs, a.args, a.kwonlyargs):
+                for arg in arglist:
+                    defined.add(arg.arg)
+            if a.vararg:
+                defined.add(a.vararg.arg)
+            if a.kwarg:
+                defined.add(a.kwarg.arg)
+        elif isinstance(node, ast.ClassDef):
+            defined.add(node.name)
+        elif isinstance(node, (ast.Assign,)):
+            for t in node.targets:
+                add_target(t)
+        elif isinstance(node, (ast.AugAssign, ast.AnnAssign)):
+            add_target(node.target)
+        elif isinstance(node, (ast.For, ast.AsyncFor)):
+            add_target(node.target)
+        elif isinstance(node, ast.comprehension):
+            add_target(node.target)
+        elif isinstance(node, (ast.With, ast.AsyncWith)):
+            for item in node.items:
+                if item.optional_vars:
+                    add_target(item.optional_vars)
+        elif isinstance(node, ast.ExceptHandler):
+            if node.name:
+                defined.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                defined.add(alias.asname or alias.name.split(".")[0])
+        elif hasattr(ast, "NamedExpr") and isinstance(node, ast.NamedExpr):
+            add_target(node.target)
+
+    return defined
+
+
+def _detect_undefined_names(code: str):
+    """R17: warn about a name that's used but never defined/imported
+    anywhere in the file, and isn't a Python builtin."""
+    issues = []
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return issues
+
+    defined = _collect_defined_names(tree)
+    seen = {}  # name -> first lineno used
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            if node.id not in seen or node.lineno < seen[node.id]:
+                seen[node.id] = node.lineno
+
+    for name, lineno in sorted(seen.items(), key=lambda kv: kv[1]):
+        if name in defined or name in _BUILTIN_NAMES:
+            continue
+        issues.append((lineno,
+                       f"'{name}' ត្រូវបានប្រើ ប៉ុន្តែមិនឃើញកន្លែង define/import ក្នុង file នេះ",
+                       f"ពិនិត្យ spelling ឬ ត្រូវ import / assign '{name}' មុននឹងប្រើ"))
+    return issues
+
+
 # ── R5: detect missing colons after control flow statements
 #   Uses a \b word-boundary regex (not startswith) so that identifiers
 #   which merely begin with a keyword — `elsewhere = 5`, `exceptions = []`,
@@ -937,6 +1034,9 @@ def _analyze(code: str) -> str:
 
     code, i6 = _fix_indentation_issues(code)
     issues.extend(i6)
+
+    i15 = _detect_undefined_names(code)
+    issues.extend(i15)
 
     output_lines = _compute_output(code)
 
