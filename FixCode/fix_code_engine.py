@@ -18,6 +18,8 @@ Rules:
   R15. Fix missing f-string prefix: "{x}" → f"{x}"
   R16. Warn: mutable default argument def f(x=[]): (detect only)
   R17. Warn: name used but never defined/imported in file (detect only)
+  R18. Warn: off-by-one loop risk — range(len(x)+1), <= len(x) (detect only)
+  R19. Warn: `is`/`is not` compared against a literal (detect only)
 """
 
 import re
@@ -753,6 +755,66 @@ def _detect_undefined_names(code: str):
     return issues
 
 
+# ── R18: off-by-one loop risk (detect only)
+_RANGE_LEN_PLUS1_RE = re.compile(r'\brange\s*\(\s*len\([^()]*\)\s*\+\s*1\s*\)')
+_LE_LEN_RE = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\s*<=\s*len\(')
+
+
+def _detect_off_by_one(code: str):
+    """R18: `range(len(x) + 1)` and `i <= len(x)` are classic off-by-one
+    patterns — valid indices only go up to len(x) - 1."""
+    issues = []
+    lines = code.splitlines()
+    for lineno, line in enumerate(lines, 1):
+        if line.lstrip().startswith("#"):
+            continue
+        if _RANGE_LEN_PLUS1_RE.search(line):
+            issues.append((lineno,
+                           "'range(len(x) + 1)' ប្រហែលជា off-by-one : "
+                           "loop នឹង index លើសព្រំដែន (out of range)",
+                           "ពិនិត្យថាតើចង់ប្រើ 'range(len(x))' ធម្មតាឬអត់"))
+        if _LE_LEN_RE.search(line):
+            issues.append((lineno,
+                           "'<= len(x)' ក្នុង condition ប្រហែលជា off-by-one : "
+                           "index ត្រឹមត្រូវគឺ 0..len(x)-1",
+                           "ពិនិត្យថាតើគួរប្រើ '< len(x)' ជំនួសឬអត់"))
+    return issues
+
+
+# ── R19: `is` / `is not` compared against a literal — should be == / !=
+def _detect_is_literal(code: str):
+    """R19: `x is 5`, `x is "a"` etc. `is` checks object identity, not
+    value equality; comparing against a literal is almost always a bug
+    (it can even give inconsistent results depending on Python's
+    internal small-int/string caching)."""
+    issues = []
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return issues
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Compare):
+            continue
+        prev = node.left
+        for op, comp in zip(node.ops, node.comparators):
+            if isinstance(op, (ast.Is, ast.IsNot)):
+                for side in (prev, comp):
+                    if (isinstance(side, ast.Constant)
+                            and isinstance(side.value, (int, float, str, bytes))
+                            and not isinstance(side.value, bool)):
+                        kw = "is not" if isinstance(op, ast.IsNot) else "is"
+                        suggested = "!=" if kw == "is not" else "=="
+                        issues.append((node.lineno,
+                                       f"'{kw}' ប្រៀបធៀបជាមួយ literal ({side.value!r}) : "
+                                       f"'is' ត្រួតពិនិត្យ object identity មិនមែនតម្លៃ",
+                                       f"ប្តូរ '{kw}' ទៅ '{suggested}' "
+                                       f"ប្រសិនជាចង់ប្រៀបធៀបតម្លៃ"))
+                        break
+            prev = comp
+    return issues
+
+
 # ── R5: detect missing colons after control flow statements
 #   Uses a \b word-boundary regex (not startswith) so that identifiers
 #   which merely begin with a keyword — `elsewhere = 5`, `exceptions = []`,
@@ -1037,6 +1099,12 @@ def _analyze(code: str) -> str:
 
     i15 = _detect_undefined_names(code)
     issues.extend(i15)
+
+    i16 = _detect_off_by_one(code)
+    issues.extend(i16)
+
+    i17 = _detect_is_literal(code)
+    issues.extend(i17)
 
     output_lines = _compute_output(code)
 
