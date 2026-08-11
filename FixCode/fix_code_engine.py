@@ -15,13 +15,17 @@ Rules:
   R12. Fix Python 2 `raw_input(` → `input(`
   R13. Fix `++` / `--` → `+= 1` / `-= 1` (no increment/decrement in Python)
   R14. Fix unclosed `[` `]` and `{` `}` (extends R3's paren logic)
+  R15. Fix missing f-string prefix: "{x}" → f"{x}"
 """
 
 import re
 import ast
+import builtins as _builtins_mod
 import operator
 
 START_TRIGGERS = ("/start", "/help", "help", "menu")
+
+_BUILTIN_NAMES = set(dir(_builtins_mod))
 
 INSTRUCTIONS = (
     "🛠 Fix Code Mode (LOCAL) : AI នឹងវិភាគ Python code ហើយ:\n\n"
@@ -470,6 +474,51 @@ def _fix_line(line: str, lineno: int):
     return "".join(out) + "".join(added), issues, triple_open
 
 
+# ── R15: forgotten `f` prefix on a string containing {placeholder}
+#   "Hello {name}"  →  f"Hello {name}"
+# Only single/double-quoted (non-triple) strings are checked. Two
+# safety guards keep this from breaking legitimate code:
+#   1. Strings immediately followed by `.format(` are left alone —
+#      that's the deliberate .format() style, not a forgotten f.
+#   2. Byte-string / already-f-string prefixes are never touched.
+_STRING_LITERAL_RE = re.compile(
+    r'(?P<prefix>[A-Za-z]{0,2})(?P<q>"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')'
+)
+_PLACEHOLDER_RE = re.compile(r'\{[A-Za-z_][^{}]*\}')
+
+
+def _fix_missing_fstring(code: str):
+    """R15: add a missing `f` prefix to a string that has a {placeholder}
+    but isn't an f-string (and isn't feeding a later .format() call)."""
+    issues = []
+    lines = code.splitlines()
+    result = []
+    for lineno, line in enumerate(lines, 1):
+        if line.lstrip().startswith("#"):
+            result.append(line)
+            continue
+
+        def _repl(m):
+            prefix = m.group('prefix')
+            q = m.group('q')
+            if 'f' in prefix.lower() or 'b' in prefix.lower():
+                return m.group(0)
+            if not _PLACEHOLDER_RE.search(q):
+                return m.group(0)
+            after = line[m.end():].lstrip()
+            if after.startswith(".format("):
+                return m.group(0)
+            new_prefix = prefix + "f"
+            issues.append((lineno,
+                           "String មាន {...} placeholder ប៉ុន្តែភ្លេច 'f' prefix",
+                           f"{prefix}{q[:12]}...  →  {new_prefix}{q[:12]}..."))
+            return new_prefix + q
+
+        new_line = _STRING_LITERAL_RE.sub(_repl, line)
+        result.append(new_line)
+    return "\n".join(result), issues
+
+
 # ── R11: `else if` (C/JS style) → `elif`
 _ELSE_IF_RE = re.compile(r'^(\s*)else\s+if\b(.*)$')
 
@@ -819,6 +868,9 @@ def _analyze(code: str) -> str:
 
     code, i3 = _fix_quotes_parens(code)
     issues.extend(i3)
+
+    code, i13 = _fix_missing_fstring(code)
+    issues.extend(i13)
 
     code, i4 = _fix_missing_colons(code)
     issues.extend(i4)
