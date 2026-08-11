@@ -6,6 +6,8 @@ Each panel has its own engine instance and independent chat history.
 Engine runs in a background QThread so the UI never freezes.
 """
 
+from datetime import datetime
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
 
@@ -33,6 +35,7 @@ class ChatPanel(QWidget):
         self._typing_bubble = None
         self._thread = None
         self._worker = None
+        self._history = []  # list of (role, text) — for chat export
         self._build()
         if welcome_text:
             self._add_ai_bubble(welcome_text)
@@ -77,6 +80,21 @@ class ChatPanel(QWidget):
         """Pre-fill + auto-send (used by sidebar topic shortcuts)."""
         self._on_send(text)
 
+    def export_history(self, filepath: str) -> bool:
+        """Write the full chat transcript to a Markdown file. Returns
+        True on success, False if the write failed (e.g. bad path)."""
+        try:
+            lines = ["# Nexus AI Chat Export",
+                     f"_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_", ""]
+            for role, text in self._history:
+                who = "🧑 You" if role == "user" else "🤖 Nexus AI"
+                lines.append(f"**{who}:**\n\n{text}\n")
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines))
+            return True
+        except OSError:
+            return False
+
     # ── private ──────────────────────────────────────────────────────────
     def _on_send(self, text: str):
         self._add_user_bubble(text)
@@ -100,11 +118,13 @@ class ChatPanel(QWidget):
     def _add_user_bubble(self, text: str):
         b = MessageBubble(text, role="user")
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, b)
+        self._history.append(("user", text))
         self._bottom()
 
     def _add_ai_bubble(self, text: str):
         b = MessageBubble(text, role="ai")
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, b)
+        self._history.append(("ai", text))
         self._bottom()
 
     def _show_typing(self):
