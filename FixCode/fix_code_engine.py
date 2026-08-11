@@ -16,6 +16,7 @@ Rules:
   R13. Fix `++` / `--` → `+= 1` / `-= 1` (no increment/decrement in Python)
   R14. Fix unclosed `[` `]` and `{` `}` (extends R3's paren logic)
   R15. Fix missing f-string prefix: "{x}" → f"{x}"
+  R16. Warn: mutable default argument def f(x=[]): (detect only)
 """
 
 import re
@@ -602,6 +603,59 @@ def _fix_increment_decrement(code: str):
     return "\n".join(result), issues
 
 
+# ── R16: mutable default argument (classic Python gotcha)
+#   def f(x=[]):  /  def f(x={}):
+# Detect-only: a correct fix needs to restructure the function body
+# (x=None, then `if x is None: x = []` inside), not just the
+# signature — that's too invasive to safely auto-rewrite, so this
+# rule warns instead of silently changing behaviour.
+_DEF_PARAMS_RE = re.compile(r'^\s*def\s+\w+\s*\((.*)\)\s*:?\s*$')
+
+
+def _split_params(params: str):
+    """Split a parameter list on top-level commas only (ignores commas
+    nested inside [], {}, () — e.g. inside a default value)."""
+    depth = 0
+    current = []
+    parts = []
+    for ch in params:
+        if ch in '([{':
+            depth += 1
+        elif ch in ')]}':
+            depth -= 1
+        if ch == ',' and depth == 0:
+            parts.append(''.join(current))
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        parts.append(''.join(current))
+    return parts
+
+
+def _detect_mutable_defaults(code: str):
+    """R16: warn about mutable (list/dict) default argument values."""
+    issues = []
+    lines = code.splitlines()
+    for lineno, line in enumerate(lines, 1):
+        m = _DEF_PARAMS_RE.match(line)
+        if not m:
+            continue
+        for part in _split_params(m.group(1)):
+            part = part.strip()
+            if '=' not in part:
+                continue
+            name, _, default = part.partition('=')
+            name, default = name.strip(), default.strip()
+            if default.startswith('[') or default.startswith('{'):
+                issues.append((lineno,
+                               f"Default argument '{name}={default}' ជា mutable "
+                               f"(list/dict) — នឹងចែករំលែក state រវាង function call គ្នា",
+                               f"ប្តូរទៅ '{name}=None' រួច 'if {name} is None: "
+                               f"{name} = {default}' ខាងក្នុង function"))
+    return issues
+
+
 # ── R5: detect missing colons after control flow statements
 #   Uses a \b word-boundary regex (not startswith) so that identifiers
 #   which merely begin with a keyword — `elsewhere = 5`, `exceptions = []`,
@@ -871,6 +925,9 @@ def _analyze(code: str) -> str:
 
     code, i13 = _fix_missing_fstring(code)
     issues.extend(i13)
+
+    i14 = _detect_mutable_defaults(code)
+    issues.extend(i14)
 
     code, i4 = _fix_missing_colons(code)
     issues.extend(i4)
