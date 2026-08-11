@@ -15,6 +15,7 @@ LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
     "📚 Lesson Mode : វាយឈ្មោះ Topic ឬជ្រើសពី Sidebar<br>"
     "📝 វាយ /quiz ដើម្បីធ្វើតេស្តចំណេះដឹង<br>"
+    "📊 វាយ /progress ដើម្បីមើលវឌ្ឍនភាពការសិក្សា<br>"
     "👉 វាយ /start ដើម្បីមើល README ពេញ"
 )
 
