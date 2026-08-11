@@ -383,22 +383,28 @@ def _fix_line(line: str, lineno: int):
 
 
 # ── R5: detect missing colons after control flow statements
+#   Uses a \b word-boundary regex (not startswith) so that identifiers
+#   which merely begin with a keyword — `elsewhere = 5`, `exceptions = []`,
+#   `finally_flag = True` — are never mistaken for the keyword itself.
+_CONTROL_KEYWORDS_RE = re.compile(
+    r'^(if|elif|else|for|while|def|class|try|except|finally)\b'
+)
+
+
 def _fix_missing_colons(code: str):
-    """Detect if/elif/else/for/while/def/class missing colon and add it."""
+    """Detect if/elif/else/for/while/def/class/try/except/finally missing ':'."""
     issues = []
     lines = code.splitlines()
     result = []
-    control_keywords = ("if ", "elif ", "else", "for ", "while ", "def ", "class ")
     for lineno, line in enumerate(lines, 1):
         stripped = line.rstrip()
         lstr = stripped.lstrip()
-        is_control = any(lstr.startswith(kw) for kw in control_keywords)
-        if is_control and stripped and not stripped.endswith(":"):
+        m = _CONTROL_KEYWORDS_RE.match(lstr)
+        if m and stripped and not stripped.endswith(":"):
             if not lstr.startswith("#"):
                 result.append(stripped + ":")
-                kw = next((kw for kw in control_keywords if lstr.startswith(kw)), "statement")
                 issues.append((lineno,
-                               f"'{kw.strip()}' statement គ្មាន ':' នៅចុង",
+                               f"'{m.group(1)}' statement គ្មាន ':' នៅចុង",
                                "បន្ថែម ':' នៅចុងបន្ទាត់"))
             else:
                 result.append(line)
