@@ -25,7 +25,10 @@
 
 - 📚 **Lesson Mode** : សួរសំណួរ ឬជ្រើសរើស Topic ពី Sidebar ដើម្បីរៀន Python ( 11 ប្រធានបទ )
 - 📝 **Quiz Mode** : វាយ `/quiz <topic>` ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice
+- 📊 **Progress Tracking** : វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (local file, គ្មាន account)
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
+- 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
+- 💾 **Export Chat** : Save conversation ជា file `.md`
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
 - ⚡ ដំណើរការលឿន ព្រោះគ្មាន API call ខាងក្រៅ
 
@@ -87,6 +90,8 @@ Nexus-AI-Assistant/
 
 📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
 
+📊 **Progress:** វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (កត់ត្រាទុកស្វ័យប្រវត្តិពេលមើលមេរៀន)។
+
 ---
 
 ## 🛠 Fix Code Mode : អ្វីខ្លះដែលកែបាន
@@ -112,6 +117,13 @@ Nexus-AI-Assistant/
 19. **`is` vs `==`** : ប្រៀបធៀប literal ដោយ `is` (`x is 5`) — ព្រមាន
 
 **របៀបប្រើ:** Paste កូដ Python ចូល input bar រួចចុច Send ( Shift+Enter = ចុះបន្ទាត់ថ្មី ) ។
+
+---
+
+## 💾 Chat Tools
+
+- **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ — ចុចដើម្បីចម្លងកូដទាំងមូល
+- **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
 
 ---
 
