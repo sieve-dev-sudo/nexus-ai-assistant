@@ -14,6 +14,7 @@ from ui.icons import python_logo_html_tag
 LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
     "📚 Lesson Mode : វាយឈ្មោះ Topic ឬជ្រើសពី Sidebar<br>"
+    "📝 វាយ /quiz ដើម្បីធ្វើតេស្តចំណេះដឹង<br>"
     "👉 វាយ /start ដើម្បីមើល README ពេញ"
 )
 
