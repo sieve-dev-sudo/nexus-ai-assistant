@@ -101,6 +101,11 @@ Nexus-AI-Assistant/
 12. **`else if`** → `elif`
 13. **Python 2 `raw_input()`** → `input()`
 14. **`++` / `--`** → `+= 1` / `-= 1`
+15. **f-string ភ្លេច `f`** : `"Hi {name}"` → `f"Hi {name}"`
+16. **Mutable default argument** : `def f(x=[]):` — ព្រមាន
+17. **Undefined name** : ប្រើ variable/function ដែលមិនឃើញកន្លែង define — ព្រមាន
+18. **Off-by-one loop** : `range(len(x)+1)`, `i <= len(x)` — ព្រមាន
+19. **`is` vs `==`** : ប្រៀបធៀប literal ដោយ `is` (`x is 5`) — ព្រមាន
 
 **របៀបប្រើ:** Paste កូដ Python ចូល input bar រួចចុច Send ( Shift+Enter = ចុះបន្ទាត់ថ្មី ) ។
 
