@@ -24,6 +24,7 @@
 ## ✨ Features
 
 - 📚 **Lesson Mode** : សួរសំណួរ ឬជ្រើសរើស Topic ពី Sidebar ដើម្បីរៀន Python ( 11 ប្រធានបទ )
+- 📝 **Quiz Mode** : វាយ `/quiz <topic>` ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
 - ⚡ ដំណើរការលឿន ព្រោះគ្មាន API call ខាងក្រៅ
@@ -37,8 +38,9 @@ Nexus-AI-Assistant/
 ├── FixCode/
 │   └── fix_code_engine.py        → Logic កែកូដ ( regex + AST )
 ├── LessonCodePython/
-│   ├── lesson_engine.py          → Logic ផ្គូផ្គង keyword → topic
+│   ├── lesson_engine.py          → Logic ផ្គូផ្គង keyword → topic + Quiz mode
 │   ├── lessons.json              → ខ្លឹមសារមេរៀនទាំង 11
+│   ├── quizzes.json              → សំណួរ Quiz តាម topic
 │   └── theme.py                  → ពណ៌ និង Font កំណត់រួម
 ├── ui/
 │   ├── main_window.py            → បង្អួចមេ
@@ -82,6 +84,8 @@ Nexus-AI-Assistant/
 | `oop`                 | class, object, inheritance, `__init__`            |
 
 **របៀបប្រើ:** វាយឈ្មោះ topic ដោយផ្ទាល់ ឬពាក្យគន្លឹះពាក់ព័ន្ធ ក្នុង chat box, ឬវាយ `/start` ដើម្បីមើល menu ពេញ។
+
+📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
 
 ---
 
