@@ -36,6 +36,7 @@ def _sidebar_width() -> int:
 class Sidebar(QWidget):
     mode_changed = pyqtSignal(str)
     topic_selected = pyqtSignal(str)
+    export_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -109,6 +110,15 @@ class Sidebar(QWidget):
             f"QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height:0; }}"
         )
         root.addWidget(scroll, stretch=1)
+
+        # Export chat — always visible, bottom of sidebar
+        root.addWidget(self._hr())
+        export_btn = QPushButton("💾  Export Chat")
+        export_btn.setCursor(Qt.PointingHandCursor)
+        export_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        export_btn.setStyleSheet(self._inactive_style())
+        export_btn.clicked.connect(self.export_requested.emit)
+        root.addWidget(export_btn)
 
     def _mk_btn(self, label, mode):
         btn = QPushButton(label)
