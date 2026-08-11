@@ -2,7 +2,12 @@
 ui/main_window.py
 """
 
-from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedWidget
+from datetime import datetime
+
+from PyQt5.QtWidgets import (
+    QMainWindow, QWidget, QHBoxLayout, QStackedWidget,
+    QFileDialog, QMessageBox,
+)
 
 from LessonCodePython.theme import C
 from LessonCodePython.lesson_engine import LessonEngine
@@ -54,6 +59,7 @@ class MainWindow(QMainWindow):
         self._sidebar = Sidebar()
         self._sidebar.mode_changed  .connect(self._switch_mode)
         self._sidebar.topic_selected.connect(self._on_topic)
+        self._sidebar.export_requested.connect(self._export_chat)
 
         self._stack = QStackedWidget()
 
@@ -77,3 +83,17 @@ class MainWindow(QMainWindow):
         self._lesson_panel.inject_text(
             TOPIC_QUESTIONS.get(key, f"Explain {key} in Python")
         )
+
+    def _export_chat(self):
+        panel = self._stack.currentWidget()
+        default_name = f"nexus_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Chat", default_name, "Markdown Files (*.md);;All Files (*)"
+        )
+        if not path:
+            return  # user cancelled
+        ok = panel.export_history(path)
+        if ok:
+            QMessageBox.information(self, "Export Chat", f"បាន Export ទៅ:\n{path}")
+        else:
+            QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ — សូមសាកល្បងម្តងទៀត។")
