@@ -1,0 +1,90 @@
+{
+  "basic": [
+    {
+      "question": "តើ Python ប្រើសញ្ញាអ្វីសម្រាប់ comment មួយជួរ?",
+      "options": ["//", "#", "/* */", "--"],
+      "answer": 1,
+      "explain": "Python ប្រើ '#' សម្រាប់ comment មួយជួរ (ឧ. # នេះជា comment)។"
+    }
+  ],
+  "variables": [
+    {
+      "question": "តើ Data Type ណាមួយខាងក្រោមតំណាងលេខទសភាគ?",
+      "options": ["int", "str", "float", "bool"],
+      "answer": 2,
+      "explain": "float ជា Data Type សម្រាប់លេខទសភាគ (ឧ. 19.99)។"
+    }
+  ],
+  "operators": [
+    {
+      "question": "តើ operator ណាមួយប្រើសម្រាប់ 'ប្រៀបធៀប' (Comparison) ក្នុង Python?",
+      "options": ["=", "==", ":=", "+="],
+      "answer": 1,
+      "explain": "'==' ប្រើសម្រាប់ប្រៀបធៀបតម្លៃ ចំណែក '=' ប្រើសម្រាប់ assignment ប៉ុណ្ណោះ។"
+    }
+  ],
+  "conditional": [
+    {
+      "question": "តើ keyword ណាមួយប្រើសម្រាប់ពិនិត្យ condition បន្ថែម ក្រោយ 'if'?",
+      "options": ["else if", "elseif", "elif", "elsif"],
+      "answer": 2,
+      "explain": "Python ប្រើ 'elif' (មិនមែន 'else if' ដូច C/JS ទេ)។"
+    }
+  ],
+  "loop": [
+    {
+      "question": "តើ keyword ណាមួយបញ្ឈប់ loop ភ្លាមៗ?",
+      "options": ["continue", "stop", "break", "exit"],
+      "answer": 2,
+      "explain": "'break' បញ្ឈប់ loop ភ្លាមៗ, ចំណែក 'continue' រំលងទៅ iteration បន្ទាប់ប៉ុណ្ណោះ។"
+    }
+  ],
+  "array": [
+    {
+      "question": "តើ method ណាមួយប្រើសម្រាប់បន្ថែមធាតុនៅចុង list?",
+      "options": ["insert()", "append()", "add()", "push()"],
+      "answer": 1,
+      "explain": "'append()' បន្ថែមធាតុនៅចុង list ។ 'add()' ជា method របស់ set មិនមែន list ទេ។"
+    }
+  ],
+  "function": [
+    {
+      "question": "បើ function គ្មាន 'return' statement តើវាត្រឡប់តម្លៃអ្វី?",
+      "options": ["0", "\"\" (empty string)", "None", "Error"],
+      "answer": 2,
+      "explain": "Function ដែលគ្មាន 'return' នឹងត្រឡប់ 'None' ជានិច្ច។"
+    }
+  ],
+  "data_structures": [
+    {
+      "question": "តើ Data Structure ណាមួយ Immutable (កែប្រែពុំបាន)?",
+      "options": ["List", "Dictionary", "Set", "Tuple"],
+      "answer": 3,
+      "explain": "Tuple ជា Immutable — ម្តងបង្កើតរួច មិនអាចកែប្រែធាតុខាងក្នុងបានទៀត។"
+    }
+  ],
+  "functions_advanced": [
+    {
+      "question": "តើ '*args' ក្នុង function parameter ក្លាយជា Data Type អ្វី?",
+      "options": ["list", "dict", "tuple", "set"],
+      "answer": 2,
+      "explain": "'*args' ខ្ចប់ positional arguments ទាំងអស់ជា tuple ។"
+    }
+  ],
+  "file_handling": [
+    {
+      "question": "តើ mode ណាមួយ 'បន្ថែម' ទិន្នន័យទៅ file ដោយមិនលុបទិន្នន័យចាស់?",
+      "options": ["'w'", "'r'", "'a'", "'x'"],
+      "answer": 2,
+      "explain": "'a' (append) បន្ថែមទិន្នន័យថ្មីខាងចុង file ដោយមិនលុបទិន្នន័យចាស់ចោល។"
+    }
+  ],
+  "oop": [
+    {
+      "question": "តើ method ណាមួយហៅដោយស្វ័យប្រវត្តិពេលបង្កើត object ថ្មី?",
+      "options": ["__str__", "__init__", "__main__", "__new__"],
+      "answer": 1,
+      "explain": "'__init__' ជា Constructor ដែលហៅដោយស្វ័យប្រវត្តិពេលបង្កើត object (instance) ថ្មី។"
+    }
+  ]
+}
