@@ -7,6 +7,7 @@ from pathlib import Path
 
 LESSONS_PATH = Path(__file__).resolve().parent / "lessons.json"
 QUIZ_PATH = Path(__file__).resolve().parent / "quizzes.json"
+PROGRESS_PATH = Path.home() / ".nexus_ai" / "progress.json"
 
 # ── ordered list so specific topics match BEFORE generic ones ─────────
 # Each entry: (tuple_of_keywords, topic_key)
@@ -20,9 +21,9 @@ TOPIC_KEYWORDS = [
     (("file handling", "file_handling", "open(", "readline", "readlines",
       "writelines", "encoding", "file mode", "read file", "write file",
       "append file", "csv", "txt file"), "file_handling"),
-    (("oop", "class", "object", "inherit", "__init__", "self.",
+    (("class", "object", "inherit", "__init__", "self.",
       "polymor", "encapsul", "instance of", "override",
-      "magic method", "__str__", "super()"), "oop"),
+      "magic method", "__str__", "super()", " oop "), "oop"),
     # ── generic topics after ────────────────────────────────────────
     (("basic", "comment", "indentation", "hello world", "syntax",
       "python basic", "first program"), "basic"),
@@ -42,14 +43,61 @@ TOPIC_KEYWORDS = [
 
 START_TRIGGERS = ("/start", "/help", "help", "menu", "start", "មុខងារ")
 QUIZ_STOP_TRIGGERS = ("/stop", "/exit", "stop quiz", "បញ្ឈប់")
+PROGRESS_TRIGGERS = ("/progress", "progress")
+
+# Fixed order for the progress checklist, independent of lessons.json's
+# own key ordering (which starts with "/start").
+TOPIC_ORDER = [
+    "basic", "variables", "operators", "conditional", "loop", "array",
+    "function", "data_structures", "functions_advanced", "file_handling", "oop",
+]
 
 
 class LessonEngine:
-    def __init__(self, path: Path = LESSONS_PATH, quiz_path: Path = QUIZ_PATH):
+    def __init__(self, path: Path = LESSONS_PATH, quiz_path: Path = QUIZ_PATH,
+                 progress_path: Path = PROGRESS_PATH):
         self.lessons = json.loads(path.read_text(encoding="utf-8"))
         self.quizzes = (json.loads(quiz_path.read_text(encoding="utf-8"))
                          if quiz_path.exists() else {})
         self._quiz_state = None  # {"topic", "index", "score", "total"}
+        self.progress_path = progress_path
+        self.progress = self._load_progress()
+
+    def _load_progress(self) -> set:
+        try:
+            if self.progress_path.exists():
+                data = json.loads(self.progress_path.read_text(encoding="utf-8"))
+                return set(data.get("completed", []))
+        except (OSError, ValueError):
+            pass
+        return set()
+
+    def _save_progress(self):
+        try:
+            self.progress_path.parent.mkdir(parents=True, exist_ok=True)
+            self.progress_path.write_text(
+                json.dumps({"completed": sorted(self.progress)},
+                           ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass  # progress is a nice-to-have — never crash the app over it
+
+    def _mark_completed(self, topic: str):
+        if topic not in self.progress:
+            self.progress.add(topic)
+            self._save_progress()
+
+    def _show_progress(self) -> str:
+        lines = []
+        for key in TOPIC_ORDER:
+            mark = "✅" if key in self.progress else "⬜"
+            lines.append(f"  {mark} {key}")
+        done = len(self.progress & set(TOPIC_ORDER))
+        total = len(TOPIC_ORDER)
+        pct = round(done / total * 100) if total else 0
+        return (f"📊 វឌ្ឍនភាពការសិក្សា: {done}/{total} ({pct}%)\n\n"
+                + "\n".join(lines))
 
     def get_response(self, user_input: str) -> str:
         text = user_input.strip()
@@ -68,18 +116,23 @@ class LessonEngine:
         if lower.startswith("/quiz"):
             return self._start_quiz(text)
 
+        if lower in PROGRESS_TRIGGERS:
+            return self._show_progress()
+
         if lower in START_TRIGGERS:
             return self._render(self.lessons["/start"])
 
         # Exact key match (user typed the key directly)
         for key, value in self.lessons.items():
             if key != "/start" and lower == key:
+                self._mark_completed(key)
                 return self._render(value)
 
         # Keyword match — ordered list, first match wins
         for keywords, topic in TOPIC_KEYWORDS:
             if any(kw in lower for kw in keywords):
                 if topic in self.lessons:
+                    self._mark_completed(topic)
                     return self._render(self.lessons[topic])
 
         return self._fallback(user_input)
