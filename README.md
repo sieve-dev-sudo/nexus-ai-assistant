@@ -31,6 +31,8 @@
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
 - 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
 - 💾 **Export Chat** : Save conversation ជា file `.md`
+- 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន confirmation)
+- 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
 - ⚡ ដំណើរការលឿន ព្រោះគ្មាន API call ខាងក្រៅ
 
@@ -135,6 +137,8 @@ Nexus-AI-Assistant/
 
 - **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ — ចុចដើម្បីចម្លងកូដទាំងមូល
 - **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
+- **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog ការពារចុចខុស)
+- **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
 
 ---
 

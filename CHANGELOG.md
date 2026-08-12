@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ## [Unreleased]
 
+### Added
+- Clear Chat button (with confirmation)
+- Reset Progress button (with confirmation)
+
 ## [1.0.0] - 2026-08-13
 
 ### Added
