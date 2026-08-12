@@ -55,9 +55,15 @@ Nexus-AI-Assistant/
 │   └── avatars.py                → រូបតំណាង
 ├── assets/
 │   └── python_logo.png           → Python logo (icon source)
+├── tests/
+│   ├── test_fix_code_engine.py   → Test សម្រាប់ FixCode 19 rule
+│   └── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
+├── conftest.py                   → Path setup សម្រាប់ pytest
+├── pytest.ini                    → Pytest config
 ├── main.py                       → ចំណុចចូល ( Entry point )
 ├── README.md
-└── requirements.txt              → Dependencies
+├── requirements.txt              → Dependencies
+└── requirements-dev.txt          → Dependencies សម្រាប់ testing
 ```
 
 ---
@@ -130,6 +136,17 @@ Nexus-AI-Assistant/
 ## 🎨 Theme
 
 ពណ៌ និង Font ទាំងអស់ត្រូវបានកំណត់នៅកន្លែងតែមួយ (`LessonCodePython/theme.py`) ធ្វើឱ្យងាយស្រួល Customize ទម្រង់ UI ទាំងមូល។
+
+---
+
+## ✅ Testing
+
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)។
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
 
 ---
 
