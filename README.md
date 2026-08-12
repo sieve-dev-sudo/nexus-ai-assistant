@@ -62,8 +62,11 @@ Nexus-AI-Assistant/
 │   └── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
 ├── conftest.py                   → Path setup សម្រាប់ pytest
 ├── pytest.ini                    → Pytest config
+├── nexus_ai.spec                 → PyInstaller build config
 ├── main.py                       → ចំណុចចូល ( Entry point )
 ├── README.md
+├── CHANGELOG.md                  → History នៃការផ្លាស់ប្តូរតាម version
+├── LICENSE                       → MIT License
 ├── requirements.txt              → Dependencies
 └── requirements-dev.txt          → Dependencies សម្រាប់ testing
 ```
@@ -177,3 +180,15 @@ File `.exe` នឹងលេចឡើងក្នុង `dist/NexusAI` (Windows: 
 ## 📄 License
 
 Project នេះស្ថិតក្រោម [MIT License](LICENSE) ។ អាចប្រើ កែច្នៃ និងចែកចាយបានដោយសេរី។
+
+---
+
+## 📜 Changelog
+
+មើលការផ្លាស់ប្តូរតាម version ទាំងអស់នៅ [CHANGELOG.md](CHANGELOG.md) ។
+
+---
+
+## 👤 Author
+
+Developed by **Mr. Siev E**
