@@ -8,6 +8,7 @@
 ![Topics](https://img.shields.io/badge/TOPICS-11-6f42c1?style=for-the-badge)
 ![Offline](https://img.shields.io/badge/Offline-Yes-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.0.0-informational?style=for-the-badge)
 
 ```
 ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗     █████╗ ██╗    ██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗

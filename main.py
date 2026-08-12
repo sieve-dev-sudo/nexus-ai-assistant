@@ -14,6 +14,8 @@ from LessonCodePython.theme import C
 from ui.main_window import MainWindow
 from ui.icons import python_logo_icon
 
+__version__ = "1.0.0"
+
 
 def build_dark_palette() -> QPalette:
     pal = QPalette()
@@ -33,6 +35,7 @@ def build_dark_palette() -> QPalette:
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Nexus AI — Python Assistant")
+    app.setApplicationVersion(__version__)
     app.setStyle("Fusion")
     app.setPalette(build_dark_palette())
     app.setWindowIcon(python_logo_icon(256))
