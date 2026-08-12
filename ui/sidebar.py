@@ -37,6 +37,8 @@ class Sidebar(QWidget):
     mode_changed = pyqtSignal(str)
     topic_selected = pyqtSignal(str)
     export_requested = pyqtSignal()
+    clear_chat_requested = pyqtSignal()
+    reset_progress_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -119,6 +121,20 @@ class Sidebar(QWidget):
         export_btn.setStyleSheet(self._inactive_style())
         export_btn.clicked.connect(self.export_requested.emit)
         root.addWidget(export_btn)
+
+        clear_btn = QPushButton("🗑️  Clear Chat")
+        clear_btn.setCursor(Qt.PointingHandCursor)
+        clear_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        clear_btn.setStyleSheet(self._inactive_style())
+        clear_btn.clicked.connect(self.clear_chat_requested.emit)
+        root.addWidget(clear_btn)
+
+        reset_btn = QPushButton("🔄  Reset Progress")
+        reset_btn.setCursor(Qt.PointingHandCursor)
+        reset_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        reset_btn.setStyleSheet(self._inactive_style())
+        reset_btn.clicked.connect(self.reset_progress_requested.emit)
+        root.addWidget(reset_btn)
 
         # Developer credit — small, muted, centered
         credit_lbl = QLabel("Developed by Mr. Siev E")
