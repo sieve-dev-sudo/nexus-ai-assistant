@@ -88,6 +88,12 @@ class LessonEngine:
             self.progress.add(topic)
             self._save_progress()
 
+    def reset_progress(self):
+        """Public: clear all tracked progress (used by the sidebar's
+        'Reset Progress' button)."""
+        self.progress = set()
+        self._save_progress()
+
     def _show_progress(self) -> str:
         lines = []
         for key in TOPIC_ORDER:
