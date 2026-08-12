@@ -60,10 +60,13 @@ class MainWindow(QMainWindow):
         self._sidebar.mode_changed  .connect(self._switch_mode)
         self._sidebar.topic_selected.connect(self._on_topic)
         self._sidebar.export_requested.connect(self._export_chat)
+        self._sidebar.clear_chat_requested.connect(self._clear_chat)
+        self._sidebar.reset_progress_requested.connect(self._reset_progress)
 
         self._stack = QStackedWidget()
 
-        self._lesson_panel = ChatPanel(LessonEngine(), welcome_text=LESSON_WELCOME)
+        self._lesson_engine = LessonEngine()
+        self._lesson_panel = ChatPanel(self._lesson_engine, welcome_text=LESSON_WELCOME)
         self._lesson_panel.set_placeholder("Ask a Python question…")
 
         self._fix_panel = ChatPanel(FixCodeEngine(), welcome_text=FIX_WELCOME)
@@ -97,3 +100,23 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Export Chat", f"បាន Export ទៅ:\n{path}")
         else:
             QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ — សូមសាកល្បងម្តងទៀត។")
+
+    def _clear_chat(self):
+        panel = self._stack.currentWidget()
+        reply = QMessageBox.question(
+            self, "Clear Chat",
+            "តើអ្នកប្រាកដថាចង់លុប conversation បច្ចុប្បន្នចោលទាំងអស់ទេ?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            panel.clear_chat()
+
+    def _reset_progress(self):
+        reply = QMessageBox.question(
+            self, "Reset Progress",
+            "តើអ្នកប្រាកដថាចង់លុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោលទេ?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            self._lesson_engine.reset_progress()
+            QMessageBox.information(self, "Reset Progress", "វឌ្ឍនភាពត្រូវបានលុបចោលរួចរាល់។")
