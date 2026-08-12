@@ -120,6 +120,14 @@ class Sidebar(QWidget):
         export_btn.clicked.connect(self.export_requested.emit)
         root.addWidget(export_btn)
 
+        # Developer credit — small, muted, centered
+        credit_lbl = QLabel("Developed by Mr. Siev E")
+        credit_lbl.setAlignment(Qt.AlignCenter)
+        credit_lbl.setStyleSheet(
+            f"color:{C['text_muted']}; font-size:{F['label']}pt; padding:8px 4px 2px;"
+        )
+        root.addWidget(credit_lbl)
+
     def _mk_btn(self, label, mode):
         btn = QPushButton(label)
         btn.setCursor(Qt.PointingHandCursor)
