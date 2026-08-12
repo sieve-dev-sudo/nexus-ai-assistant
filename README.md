@@ -151,6 +151,19 @@ pytest
 
 ---
 
+## 📦 Build ជា .exe (Standalone)
+
+មិនចាំបាច់ឲ្យ user ដំឡើង Python ខ្លួនឯងទេ — build ជា executable តែមួយឯកតា៖
+
+```bash
+pip install -r requirements-dev.txt
+pyinstaller nexus_ai.spec
+```
+
+File `.exe` នឹងលេចឡើងក្នុង `dist/NexusAI` (Windows: `dist/NexusAI.exe`) ។ Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ — copy folder `dist/` ទៅម៉ាស៊ីនផ្សេងបាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
+
+---
+
 ## 📝 Notes
 
 - App នេះមិនតម្រូវឱ្យមាន Internet ឬ API Key ទេ ( 100% Local Logic )
