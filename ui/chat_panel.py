@@ -36,6 +36,7 @@ class ChatPanel(QWidget):
         self._thread = None
         self._worker = None
         self._history = []  # list of (role, text) — for chat export
+        self._welcome_text = welcome_text
         self._build()
         if welcome_text:
             self._add_ai_bubble(welcome_text)
@@ -94,6 +95,19 @@ class ChatPanel(QWidget):
             return True
         except OSError:
             return False
+
+    def clear_chat(self):
+        """Remove every message bubble and reset history, then show the
+        welcome message again (if this panel has one) — same state as
+        a fresh app launch."""
+        while self._msg_lay.count() > 1:  # keep the trailing stretch
+            item = self._msg_lay.takeAt(0)
+            w = item.widget()
+            if w:
+                w.deleteLater()
+        self._history = []
+        if self._welcome_text:
+            self._add_ai_bubble(self._welcome_text)
 
     # ── private ──────────────────────────────────────────────────────────
     def _on_send(self, text: str):
