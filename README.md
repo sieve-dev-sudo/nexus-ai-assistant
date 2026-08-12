@@ -7,6 +7,7 @@
 ![Rule-Based](https://img.shields.io/badge/AI-Rule--Based-orange?style=for-the-badge)
 ![Topics](https://img.shields.io/badge/TOPICS-11-6f42c1?style=for-the-badge)
 ![Offline](https://img.shields.io/badge/Offline-Yes-brightgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 ```
 ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗     █████╗ ██╗    ██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗
@@ -156,3 +157,9 @@ pytest
 - សម្រាប់គោលបំណងសិក្សា / Demo : មិនមែនជា AI Model ពិតប្រាកដ (LLM) ទេ គឺជា Rule-based system
 - Desktop AI Chatbot Application សម្រាប់បង្រៀន និងកែកូដ Python សាងសង់ដោយ **PyQt5**
 - App នេះដំណើរការជា **Rule-based AI** ១០០% ក្នុងម៉ាស៊ីន Local និង គ្មានការហៅ API ខាងក្រៅ ឬប្រើ Internet ទេ។
+
+---
+
+## 📄 License
+
+Project នេះស្ថិតក្រោម [MIT License](LICENSE) ។ អាចប្រើ កែច្នៃ និងចែកចាយបានដោយសេរី។
