@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# PyInstaller build output
+build/
+dist/
+*.spec.bak
+.pytest_cache/
