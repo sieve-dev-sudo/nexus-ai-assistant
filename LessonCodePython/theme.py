@@ -31,6 +31,7 @@ DARK_COLORS = {
     "shadow":         "#00000099",
     "python_yellow":  "#ffd343",
     "python_blue":    "#4584b6",
+    "brand_title":    "#ffd343",  # sidebar "Nexus AI" title color
 }
 
 LIGHT_COLORS = {
@@ -55,6 +56,7 @@ LIGHT_COLORS = {
     "shadow":         "#00000033",
     "python_yellow":  "#ffd343",
     "python_blue":    "#4584b6",
+    "brand_title":    "#1d4ed8",  # blue reads much better than yellow on light bg
 }
 
 COLORS = LIGHT_COLORS if _settings.get("theme") == "light" else DARK_COLORS
