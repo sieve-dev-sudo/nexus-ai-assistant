@@ -2,9 +2,14 @@
 LessonCodePython/theme.py
 ──────────────────────────
 Central colour palette + font sizes for the whole application.
+Reads the saved theme/font-scale preference once at import time —
+changing settings takes effect on the next app restart.
 """
+from LessonCodePython.settings_manager import load_settings
 
-COLORS = {
+_settings = load_settings()
+
+DARK_COLORS = {
     "bg_main":        "#0a0a0e",
     "bg_sidebar":     "#0f0f14",
     "bg_card":        "#15151c",
@@ -28,14 +33,41 @@ COLORS = {
     "python_blue":    "#4584b6",
 }
 
+LIGHT_COLORS = {
+    "bg_main":        "#f5f5f8",
+    "bg_sidebar":     "#ececf2",
+    "bg_card":        "#ffffff",
+    "bg_input":       "#ffffff",
+    "bg_hover":       "#e2e2ec",
+    "bg_user_bubble": "#2563eb",
+    "bg_ai_bubble":   "#ffffff",
+    "accent":         "#2563eb",
+    "accent2":        "#1d4ed8",
+    "accent_green":   "#059669",
+    "text_primary":   "#16161f",
+    "text_secondary": "#5a5a72",
+    "text_muted":     "#9a9ab0",
+    "border":         "#d8d8e2",
+    "border_focus":   "#2563eb",
+    "dot_1":          "#2563eb",
+    "dot_2":          "#4f46e5",
+    "dot_3":          "#7c3aed",
+    "shadow":         "#00000033",
+    "python_yellow":  "#ffd343",
+    "python_blue":    "#4584b6",
+}
+
+COLORS = LIGHT_COLORS if _settings.get("theme") == "light" else DARK_COLORS
+
+_scale = _settings.get("font_scale", 1.0)
 FONTS = {
-    "title":   16,
-    "body":    15,
-    "code":    14,
-    "sidebar": 14,
-    "topic":   13,
-    "label":   11,
-    "input":   15,
+    "title":   round(16 * _scale),
+    "body":    round(15 * _scale),
+    "code":    round(14 * _scale),
+    "sidebar": round(14 * _scale),
+    "topic":   round(13 * _scale),
+    "label":   round(11 * _scale),
+    "input":   round(15 * _scale),
 }
 
 C = COLORS
