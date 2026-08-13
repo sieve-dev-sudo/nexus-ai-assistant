@@ -65,7 +65,7 @@ class Sidebar(QWidget):
 
         text_lbl = QLabel("Nexus AI")
         text_lbl.setStyleSheet(
-            f"color:{C['python_yellow']}; font-size:{F['title'] + 4}pt; "
+            f"color:{C['brand_title']}; font-size:{F['title'] + 4}pt; "
             f"font-weight:700;"
         )
         title_lay.addWidget(text_lbl)
