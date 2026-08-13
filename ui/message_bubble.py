@@ -38,9 +38,13 @@ class CodeBlock(QTextEdit):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.document().setDocumentMargin(4)
 
+        # Code blocks always keep a fixed dark "code editor" look —
+        # deliberately NOT tied to C['text_primary'] which flips to a
+        # near-black value in light theme (that would make the text
+        # invisible against this block's fixed dark background).
         self.setStyleSheet(
-            f"background:#0d0d14; color:{C['text_primary']}; "
-            f"border:1px solid {C['border']}; border-radius:8px; "
+            "background:#0d0d14; color:#e8e8f0; "
+            "border:1px solid #252535; border-radius:8px; "
             f"padding:8px 14px; font-size:{F['code']}pt;"
         )
 
@@ -48,13 +52,15 @@ class CodeBlock(QTextEdit):
         self.setFixedHeight(self._target_h)
 
         # Copy button — floats over the top-right corner of the block.
+        # Also fixed-dark-styled to match the code block regardless of
+        # the app's light/dark theme setting.
         self._copy_btn = QPushButton("📋 Copy", self)
         self._copy_btn.setCursor(Qt.PointingHandCursor)
         self._copy_btn.setStyleSheet(
-            f"QPushButton {{ background:{C['bg_card']}; "
-            f"color:{C['text_secondary']}; border:1px solid {C['border']}; "
+            "QPushButton { background:#15151c; "
+            "color:#7878a0; border:1px solid #252535; "
             f"border-radius:6px; padding:2px 8px; font-size:{F['label']}pt; }}"
-            f"QPushButton:hover {{ background:{C['border']}; }}"
+            "QPushButton:hover { background:#252535; }"
         )
         self._copy_btn.clicked.connect(self._copy_code)
         self._copy_btn.adjustSize()
