@@ -14,7 +14,7 @@ from LessonCodePython.lesson_engine import LessonEngine
 from FixCode.fix_code_engine import FixCodeEngine, INSTRUCTIONS as FIX_WELCOME
 from ui.sidebar import Sidebar
 from ui.chat_panel import ChatPanel
-from ui.icons import python_logo_html_tag
+from ui.settings_dialog import SettingsDialog
 
 LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow):
         self._sidebar.export_requested.connect(self._export_chat)
         self._sidebar.clear_chat_requested.connect(self._clear_chat)
         self._sidebar.reset_progress_requested.connect(self._reset_progress)
+        self._sidebar.settings_requested.connect(self._open_settings)
 
         self._stack = QStackedWidget()
 
@@ -120,3 +121,7 @@ class MainWindow(QMainWindow):
         if reply == QMessageBox.Yes:
             self._lesson_engine.reset_progress()
             QMessageBox.information(self, "Reset Progress", "វឌ្ឍនភាពត្រូវបានលុបចោលរួចរាល់។")
+
+    def _open_settings(self):
+        dlg = SettingsDialog(self)
+        dlg.exec_()
