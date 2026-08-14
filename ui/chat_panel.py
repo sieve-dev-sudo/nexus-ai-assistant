@@ -77,6 +77,12 @@ class ChatPanel(QWidget):
     def set_placeholder(self, text: str):
         self._bar.set_placeholder(text)
 
+    def focus_input(self):
+        self._bar.focus()
+
+    def clear_input(self):
+        self._bar.clear_input()
+
     def inject_text(self, text: str):
         """Pre-fill + auto-send (used by sidebar topic shortcuts)."""
         self._on_send(text)
