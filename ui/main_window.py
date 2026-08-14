@@ -6,8 +6,9 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QStackedWidget,
-    QFileDialog, QMessageBox,
+    QFileDialog, QMessageBox, QShortcut,
 )
+from PyQt5.QtGui import QKeySequence
 
 from LessonCodePython.theme import C
 from LessonCodePython.lesson_engine import LessonEngine
@@ -78,6 +79,33 @@ class MainWindow(QMainWindow):
 
         lay.addWidget(self._sidebar)
         lay.addWidget(self._stack)
+
+        self._setup_shortcuts()
+
+    def _setup_shortcuts(self):
+        # Ctrl+K — jump to the message input box, from anywhere in the window.
+        focus_sc = QShortcut(QKeySequence("Ctrl+K"), self)
+        focus_sc.activated.connect(
+            lambda: self._stack.currentWidget().focus_input()
+        )
+
+        # Esc — clear whatever's currently typed in the active input box.
+        clear_sc = QShortcut(QKeySequence("Esc"), self)
+        clear_sc.activated.connect(
+            lambda: self._stack.currentWidget().clear_input()
+        )
+
+        # Ctrl+L — clear the current chat (same action as the sidebar button).
+        clear_chat_sc = QShortcut(QKeySequence("Ctrl+L"), self)
+        clear_chat_sc.activated.connect(self._clear_chat)
+
+        # Ctrl+, — open Settings (common convention across many apps).
+        settings_sc = QShortcut(QKeySequence("Ctrl+,"), self)
+        settings_sc.activated.connect(self._open_settings)
+
+        # Ctrl+F — jump to the sidebar's topic search box.
+        search_sc = QShortcut(QKeySequence("Ctrl+F"), self)
+        search_sc.activated.connect(self._sidebar.focus_search)
 
     def _switch_mode(self, mode: str):
         self._stack.setCurrentIndex(0 if mode == "lesson" else 1)
