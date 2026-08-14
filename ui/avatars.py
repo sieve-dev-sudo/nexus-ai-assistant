@@ -10,7 +10,9 @@ from LessonCodePython.theme import C
 
 
 class AvatarLabel(QLabel):
+    """Small circular badge showing an emoji/initial for a chat message's sender."""
     def __init__(self, text: str, bg: str, size: int = 38, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(text, parent)
         self.setFixedSize(size, size)
         self.setAlignment(Qt.AlignCenter)
@@ -21,10 +23,12 @@ class AvatarLabel(QLabel):
 
 
 class TypingDots(QWidget):
+    """Animated three-dot "typing…" indicator shown while waiting for a response."""
     DOT_COLORS = [C["dot_1"], C["dot_2"], C["dot_3"]]
     DOT_SIZE = 9
 
     def __init__(self, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self._offsets = [0, 0, 0]
         self._timer = QTimer(self)
@@ -33,10 +37,16 @@ class TypingDots(QWidget):
         self.setFixedHeight(28)
         self.setMinimumWidth(54)
 
-    def start(self): self._timer.start(120)
-    def stop(self): self._timer.stop()
+    def start(self):
+        """Start the animation timer."""
+        self._timer.start(120)
+
+    def stop(self):
+        """Stop the animation timer."""
+        self._timer.stop()
 
     def _tick(self):
+        """Tick."""
         self._step = (self._step + 1) % 9
         for i in range(3):
             phase = (self._step - i * 2) % 9
@@ -44,6 +54,7 @@ class TypingDots(QWidget):
         self.update()
 
     def paintEvent(self, _):
+        """PaintEvent."""
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         x = 6
