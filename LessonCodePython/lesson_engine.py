@@ -55,8 +55,10 @@ TOPIC_ORDER = [
 
 
 class LessonEngine:
+    """Public entry point for Lesson mode: routes chat messages to a topic lesson, a quiz question/answer, or a progress report."""
     def __init__(self, path: Path = LESSONS_PATH, quiz_path: Path = QUIZ_PATH,
                  progress_path: Path = PROGRESS_PATH) -> None:
+        """Load lesson/quiz content and any previously saved progress from disk."""
         self.lessons: Dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
         self.quizzes: Dict[str, Any] = (
             json.loads(quiz_path.read_text(encoding="utf-8"))
@@ -67,6 +69,7 @@ class LessonEngine:
         self.progress: Set[str] = self._load_progress()
 
     def _load_progress(self) -> Set[str]:
+        """Read the saved set of completed topics from disk, or start empty if there's no file yet."""
         try:
             if self.progress_path.exists():
                 data = json.loads(self.progress_path.read_text(encoding="utf-8"))
@@ -76,6 +79,7 @@ class LessonEngine:
         return set()
 
     def _save_progress(self) -> None:
+        """Persist the current set of completed topics to disk (best-effort — never raises)."""
         try:
             self.progress_path.parent.mkdir(parents=True, exist_ok=True)
             self.progress_path.write_text(
@@ -87,6 +91,7 @@ class LessonEngine:
             pass  # progress is a nice-to-have — never crash the app over it
 
     def _mark_completed(self, topic: str) -> None:
+        """Record a topic as viewed/completed and persist it, if not already recorded."""
         if topic not in self.progress:
             self.progress.add(topic)
             self._save_progress()
@@ -98,6 +103,7 @@ class LessonEngine:
         self._save_progress()
 
     def _show_progress(self) -> str:
+        """Build the progress checklist text (✅/⬜ per topic, plus a completion percentage)."""
         lines = []
         for key in TOPIC_ORDER:
             mark = "✅" if key in self.progress else "⬜"
@@ -109,6 +115,7 @@ class LessonEngine:
                 + "\n".join(lines))
 
     def get_response(self, user_input: str) -> str:
+        """Route one chat message to a quiz answer, a quiz start, a progress report, a lesson lookup, or the fallback message."""
         text = user_input.strip()
         lower = text.lower()
 
@@ -148,6 +155,7 @@ class LessonEngine:
 
     # ── Quiz mode ───────────────────────────────────────────────────
     def _start_quiz(self, text: str) -> str:
+        """Begin a quiz for the requested topic, or list available quiz topics if none was given."""
         parts = text.split(maxsplit=1)
         if len(parts) < 2:
             topics = ", ".join(sorted(self.quizzes.keys()))
@@ -162,6 +170,7 @@ class LessonEngine:
         return self._present_question()
 
     def _present_question(self) -> str:
+        """Format the current quiz question with its lettered answer options."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
@@ -173,6 +182,7 @@ class LessonEngine:
                 f"សូមឆ្លើយ A, B, C ឬ D (វាយ /stop ដើម្បីបញ្ឈប់)")
 
     def _handle_quiz_answer(self, text: str) -> str:
+        """Score the given answer against the current quiz question, then advance to the next question or finish the quiz."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
@@ -198,6 +208,7 @@ class LessonEngine:
 
     @staticmethod
     def _render(entry: Any) -> str:
+        """Format a lesson entry's theory text plus its runnable example, if any."""
         if isinstance(entry, dict):
             theory = entry.get("theory", "")
             example = entry.get("example", "")
@@ -205,6 +216,7 @@ class LessonEngine:
         return entry
 
     def _fallback(self, user_input: str) -> str:
+        """Response used when the input matches no command, topic, or keyword."""
         topics = [k for k in self.lessons if k != "/start"]
         listing = "\n".join(f"  • {t}" for t in topics)
         return (
