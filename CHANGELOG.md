@@ -6,31 +6,50 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ## [Unreleased]
 
-### Added
-- Clear Chat button (with confirmation)
-- Reset Progress button (with confirmation)
-
-## [1.0.0] - 2026-08-13
+## [1.1.0] - August 14, 2026
 
 ### Added
-- **Lesson Mode**: 11 ប្រធានបទ Python (basic → OOP), keyword-based lookup
-- **Quiz Mode** (`/quiz <topic>`): សំណួរ multiple-choice, ពិន្ទុ, `/stop`
-- **Progress Tracking** (`/progress`): កត់ត្រា topic ដែលបានរៀនរួច ទៅ local file
-- **Fix Code Mode**: 19 rule សម្រាប់ detect/auto-fix កំហុស Python ទូទៅ
-  (print typo, missing colon, `=` vs `==`, indentation, Python 2 syntax,
-  invalid operators, keyword typo, f-string, mutable default, undefined
-  name, off-by-one, `is` vs `==` ។ល។)
-- **Copy Button**: ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
-- **Export Chat**: save conversation ជា file `.md`
-- Python logo icon (custom, transparent background) ជំនួស emoji 🐍
-- Developer credit ("Developed by Mr. Siev E") ក្នុង sidebar
-- **pytest test suite**: 134+ test គ្របដណ្តប់ FixCode + Lesson engine
-- **PyInstaller packaging**: build ជា standalone `.exe`
+- Custom Python logo icon (transparent background) replacing the 🐍 emoji,
+  used in the sidebar, window/taskbar icon, and welcome message
+- 11 new Fix Code rules (R9-R19): Python 2 `print`/`raw_input()` syntax,
+  invalid comparison operators (`=<` `=>` `<>`), keyword misspellings,
+  `else if`, `++`/`--`, unclosed `[` `]` `{` `}`, multi-line triple-quote
+  string support, missing f-string prefix, and warn-only checks for
+  mutable default arguments, undefined names, off-by-one loops, and
+  `is`-vs-`==` literal comparisons
+- Quiz Mode (`/quiz <topic>`) with scoring and `/stop`
+- Progress Tracking (`/progress`), persisted to a local file
+- Copy button on code blocks
+- Export Chat to a `.md` file
+- Clear Chat and Reset Progress buttons (both with confirmation)
+- Settings panel: Dark/Light theme, font size 80%-150%
+- Search box to filter lesson topics by name or keyword
+- Keyboard shortcuts (Ctrl+K, Esc, Ctrl+L, Ctrl+,, Ctrl+F)
+- Developer credit in the sidebar
+- pytest test suite (134 tests) covering the FixCode and Lesson engines
+- PyInstaller packaging (`nexus_ai.spec`) for a standalone executable
 - MIT License
 
 ### Fixed
-- Print-typo false positives (`sprint`, `point`, `greet`, `write` ។ល។
-  ធ្លាប់ត្រូវបំផ្លាញដោយចៃដន្យ)
-- Missing-colon detector ប៉ះពាល់ identifier ដូចជា `elsewhere`, `exceptions`
-- `oop`/`loop` keyword collision (`"for loop"` ធ្លាប់ចាត់ទុកខុសជា OOP topic)
-- Multi-line triple-quote docstring content ធ្លាប់ត្រូវកែខុសដោយ rule ផ្សេង
+- Print-typo detector (R0) false-flagged real words (`sprint`, `point`,
+  `greet`, `write`, `prime`, ...) as typos of `print`
+- Missing-colon detector matched identifier prefixes (`elsewhere`,
+  `exceptions`) instead of whole keywords
+- `oop`/`loop` keyword collision routed "for loop" questions to the OOP
+  lesson instead of Loop
+- Multi-line triple-quoted docstring content could be misread/altered by
+  other Fix Code rules
+- Code block text and sidebar title were unreadable in Light theme
+  (colors were following the theme instead of staying fixed/contrasting)
+
+## [1.0.0] - August 1, 2026
+
+### Added
+- Lesson Mode: 11 Python topics with keyword-based lookup
+  (`LessonCodePython/lesson_engine.py`, `lessons.json`)
+- Fix Code Mode: base rule set (`FixCode/fix_code_engine.py`)
+  - print typo/case fixes, trailing semicolons
+  - unclosed quotes/parens, missing colons
+  - `=`-vs-`==` detection, indentation issue detection
+  - AST-based output estimation
+- PyQt5 desktop UI: sidebar, chat panel, message bubbles, input bar
