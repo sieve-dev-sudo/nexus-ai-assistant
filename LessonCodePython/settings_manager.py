@@ -20,6 +20,7 @@ DEFAULTS: Dict[str, Any] = {
 
 
 def load_settings(path: Path = SETTINGS_PATH) -> Dict[str, Any]:
+    """Load saved settings from disk, filling in any missing keys with defaults."""
     try:
         if path.exists():
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -32,6 +33,7 @@ def load_settings(path: Path = SETTINGS_PATH) -> Dict[str, Any]:
 
 
 def save_settings(settings: Dict[str, Any], path: Path = SETTINGS_PATH) -> bool:
+    """Write settings to disk (best-effort — returns False rather than raising on failure)."""
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
