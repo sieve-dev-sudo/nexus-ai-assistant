@@ -3,12 +3,13 @@ ui/sidebar.py
 """
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QSizePolicy, QScrollArea
+    QFrame, QSizePolicy, QScrollArea, QLineEdit
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QFont
 
 from LessonCodePython.theme import C, F
+from LessonCodePython.lesson_engine import TOPIC_KEYWORDS
 from ui.icons import python_logo_pixmap
 
 TOPICS = [
@@ -31,6 +32,23 @@ def _sidebar_width() -> int:
     fm = QFontMetrics(font)
     widest = max(fm.horizontalAdvance(label) for _, label in TOPICS)
     return max(widest + 22 + 12 + 12 + 20, 340)
+
+
+def _build_search_index() -> dict:
+    """topic_key -> lowercase blob of its label + every keyword that
+    routes chat messages to it — lets the sidebar search box match on
+    content, not just the visible label text."""
+    index = {}
+    for key, label in TOPICS:
+        terms = [label.lower()]
+        for keywords, topic in TOPIC_KEYWORDS:
+            if topic == key:
+                terms.extend(k.lower().strip() for k in keywords)
+        index[key] = " ".join(terms)
+    return index
+
+
+_SEARCH_INDEX = _build_search_index()
 
 
 class Sidebar(QWidget):
@@ -91,6 +109,25 @@ class Sidebar(QWidget):
         to_lay.setSpacing(0)
         to_lay.addWidget(self._section_lbl("TOPICS"))
 
+        self._search_box = QLineEdit()
+        self._search_box.setPlaceholderText("🔍 Search topics…")
+        self._search_box.setClearButtonEnabled(True)
+        self._search_box.setStyleSheet(
+            f"QLineEdit {{ background:{C['bg_input']}; color:{C['text_primary']}; "
+            f"border:1px solid {C['border']}; border-radius:6px; "
+            f"padding:6px 8px; font-size:{F['topic']}pt; margin:4px 0 8px; }}"
+            f"QLineEdit:focus {{ border:1px solid {C['border_focus']}; }}"
+        )
+        self._search_box.textChanged.connect(self._filter_topics)
+        to_lay.addWidget(self._search_box)
+
+        self._topic_buttons = {}
+        self._no_results_lbl = QLabel("គ្មាន topic ត្រូវគ្នាទេ")
+        self._no_results_lbl.setStyleSheet(
+            f"color:{C['text_muted']}; font-size:{F['topic']}pt; padding:8px;"
+        )
+        self._no_results_lbl.setVisible(False)
+
         for key, label in TOPICS:
             b = QPushButton(label)
             b.setCursor(Qt.PointingHandCursor)
@@ -98,7 +135,9 @@ class Sidebar(QWidget):
             b.setStyleSheet(self._topic_style())
             b.clicked.connect(lambda _, k=key: self.topic_selected.emit(k))
             to_lay.addWidget(b)
+            self._topic_buttons[key] = b
 
+        to_lay.addWidget(self._no_results_lbl)
         to_lay.addStretch(0)
 
         scroll = QScrollArea()
@@ -151,6 +190,15 @@ class Sidebar(QWidget):
             f"color:{C['text_muted']}; font-size:{F['label']}pt; padding:8px 4px 2px;"
         )
         root.addWidget(credit_lbl)
+
+    def _filter_topics(self, text: str):
+        query = text.strip().lower()
+        any_visible = False
+        for key, btn in self._topic_buttons.items():
+            visible = (not query) or (query in _SEARCH_INDEX.get(key, ""))
+            btn.setVisible(visible)
+            any_visible = any_visible or visible
+        self._no_results_lbl.setVisible(bool(query) and not any_visible)
 
     def _mk_btn(self, label, mode):
         btn = QPushButton(label)
