@@ -6,6 +6,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ## [Unreleased]
 
+### Added
+- 22 more quiz questions (3 per topic, 33 total, up from 1 per topic)
+
 ## [1.1.0] - August 14, 2026
 
 ### Added

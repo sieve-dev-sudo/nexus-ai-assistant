@@ -26,7 +26,7 @@
 ## ✨ Features
 
 - 📚 **Lesson Mode** : សួរសំណួរ ឬជ្រើសរើស Topic ពី Sidebar ដើម្បីរៀន Python ( 11 ប្រធានបទ )
-- 📝 **Quiz Mode** : វាយ `/quiz <topic>` ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice
+- 📝 **Quiz Mode** : វាយ `/quiz <topic>` ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice (3 សំណួរ/topic, 33 សរុប)
 - 📊 **Progress Tracking** : វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (local file, គ្មាន account)
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
 - 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
@@ -106,7 +106,7 @@ Nexus-AI-Assistant/
 
 **របៀបប្រើ:** វាយឈ្មោះ topic ដោយផ្ទាល់ ឬពាក្យគន្លឹះពាក់ព័ន្ធ ក្នុង chat box, ឬវាយ `/start` ដើម្បីមើល menu ពេញ។
 
-📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
+📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង — **3 សំណួរ multiple-choice/topic**, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
 
 📊 **Progress:** វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (កត់ត្រាទុកស្វ័យប្រវត្តិពេលមើលមេរៀន)។
 
@@ -183,7 +183,7 @@ Nexus-AI-Assistant/
 
 ## ✅ Testing
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប 135 test ។
 
 ```bash
 pip install -r requirements-dev.txt
