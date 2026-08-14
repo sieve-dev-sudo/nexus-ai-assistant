@@ -41,7 +41,9 @@ TOPIC_QUESTIONS = {
 
 
 class MainWindow(QMainWindow):
+    """Top-level window: wires the sidebar, the Lesson/Fix Code chat panels, and keyboard shortcuts together."""
     def __init__(self):
+        """Set up this widget's state and build its child widgets."""
         super().__init__()
         self.setWindowTitle("Nexus AI — Python Assistant")
         self.resize(1000, 720)
@@ -49,6 +51,7 @@ class MainWindow(QMainWindow):
         self._build()
 
     def _build(self):
+        """Build."""
         root = QWidget()
         root.setStyleSheet(f"background:{C['bg_main']};")
         self.setCentralWidget(root)
@@ -84,6 +87,7 @@ class MainWindow(QMainWindow):
 
     def _setup_shortcuts(self):
         # Ctrl+K — jump to the message input box, from anywhere in the window.
+        """Setup shortcuts."""
         focus_sc = QShortcut(QKeySequence("Ctrl+K"), self)
         focus_sc.activated.connect(
             lambda: self._stack.currentWidget().focus_input()
@@ -108,15 +112,18 @@ class MainWindow(QMainWindow):
         search_sc.activated.connect(self._sidebar.focus_search)
 
     def _switch_mode(self, mode: str):
+        """Switch mode."""
         self._stack.setCurrentIndex(0 if mode == "lesson" else 1)
 
     def _on_topic(self, key: str):
+        """On topic."""
         self._stack.setCurrentIndex(0)
         self._lesson_panel.inject_text(
             TOPIC_QUESTIONS.get(key, f"Explain {key} in Python")
         )
 
     def _export_chat(self):
+        """Export chat."""
         panel = self._stack.currentWidget()
         default_name = f"nexus_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         path, _ = QFileDialog.getSaveFileName(
@@ -131,6 +138,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ — សូមសាកល្បងម្តងទៀត។")
 
     def _clear_chat(self):
+        """Clear chat."""
         panel = self._stack.currentWidget()
         reply = QMessageBox.question(
             self, "Clear Chat",
@@ -141,6 +149,7 @@ class MainWindow(QMainWindow):
             panel.clear_chat()
 
     def _reset_progress(self):
+        """Reset progress."""
         reply = QMessageBox.question(
             self, "Reset Progress",
             "តើអ្នកប្រាកដថាចង់លុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោលទេ?",
@@ -151,5 +160,6 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Reset Progress", "វឌ្ឍនភាពត្រូវបានលុបចោលរួចរាល់។")
 
     def _open_settings(self):
+        """Open settings."""
         dlg = SettingsDialog(self)
         dlg.exec_()
