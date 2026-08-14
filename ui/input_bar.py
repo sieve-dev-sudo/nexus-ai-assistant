@@ -60,6 +60,9 @@ class InputBar(QWidget):
     def focus(self):
         self._editor.setFocus()
 
+    def clear_input(self):
+        self._editor.clear()
+
 
 class _GrowingTextEdit(QTextEdit):
     returnPressed = pyqtSignal()
