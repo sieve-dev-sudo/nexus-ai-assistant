@@ -8,7 +8,7 @@
 ![Topics](https://img.shields.io/badge/TOPICS-11-6f42c1?style=for-the-badge)
 ![Offline](https://img.shields.io/badge/Offline-Yes-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.0.0-informational?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.1.0-informational?style=for-the-badge)
 
 ```
 ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗     █████╗ ██╗    ██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗
@@ -33,6 +33,9 @@
 - 💾 **Export Chat** : Save conversation ជា file `.md`
 - 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន confirmation)
 - 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
+- ⚙️ **Settings** : ប្តូរ Theme (Dark/Light) និង Font size
+- 🔍 **Search Lessons** : ស្វែងរក topic ដោយផ្ទាល់ពី Sidebar (តាមឈ្មោះ ឬ keyword ខាងក្នុង)
+- ⌨️ **Keyboard Shortcuts** : `Ctrl+K`, `Esc`, `Ctrl+L`, `Ctrl+,`, `Ctrl+F`
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
 - ⚡ ដំណើរការលឿន ព្រោះគ្មាន API call ខាងក្រៅ
 
@@ -48,14 +51,16 @@ Nexus-AI-Assistant/
 │   ├── lesson_engine.py          → Logic ផ្គូផ្គង keyword → topic + Quiz mode
 │   ├── lessons.json              → ខ្លឹមសារមេរៀនទាំង 11
 │   ├── quizzes.json              → សំណួរ Quiz តាម topic
-│   └── theme.py                  → ពណ៌ និង Font កំណត់រួម
+│   ├── settings_manager.py       → Theme/Font settings persistence
+│   └── theme.py                  → ពណ៌ (Dark/Light) និង Font កំណត់រួម
 ├── ui/
-│   ├── main_window.py            → បង្អួចមេ
-│   ├── sidebar.py                → ម៉ឺនុយឆ្វេង
+│   ├── main_window.py            → បង្អួចមេ + Keyboard shortcuts
+│   ├── sidebar.py                → ម៉ឺនុយឆ្វេង + Search topics
 │   ├── chat_panel.py             → ផ្ទាំង Chat
 │   ├── message_bubble.py         → Bubble សារ
 │   ├── input_bar.py              → ប្រអប់វាយអក្សរ
 │   ├── icons.py                  → Python logo icon loader
+│   ├── settings_dialog.py        → Settings dialog (Theme/Font)
 │   └── avatars.py                → រូបតំណាង
 ├── assets/
 │   └── python_logo.png           → Python logo (icon source)
@@ -139,6 +144,34 @@ Nexus-AI-Assistant/
 - **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
 - **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog ការពារចុចខុស)
 - **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
+
+---
+
+## ⚙️ Settings
+
+ចុច "⚙️ Settings" ក្នុង Sidebar ដើម្បីប្តូរ៖
+- **Theme** : Dark ឬ Light
+- **Font Size** : 80% - 150%
+
+*ត្រូវ restart App ដើម្បីឲ្យការផ្លាស់ប្តូរដំណើរការ។*
+
+---
+
+## 🔍 Search Lessons
+
+ប្រអប់ "🔍 Search topics…" នៅខាងលើ Topics list អាចស្វែងរកបាន ទាំងតាម **ឈ្មោះ topic** និង **keyword ខាងក្នុង** (ឧ. វាយ "class" ឬ "lambda" នឹងបង្ហាញ topic ត្រូវគ្នាភ្លាមៗ)។
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Key | មុខងារ |
+|---|---|
+| `Ctrl+K` | Focus ទៅ input box |
+| `Esc` | Clear អក្សរដែលកំពុងវាយក្នុង input |
+| `Ctrl+L` | Clear Chat |
+| `Ctrl+,` | បើក Settings |
+| `Ctrl+F` | Focus ទៅ Search topics box |
 
 ---
 
