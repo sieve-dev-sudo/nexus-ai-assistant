@@ -17,19 +17,24 @@ from ui.input_bar import InputBar
 
 
 class _Worker(QObject):
+    """Runs the (possibly slow) engine.get_response() call off the UI thread."""
     finished = pyqtSignal(str)
 
     def __init__(self, engine, text: str):
+        """Set up this widget's state and build its child widgets."""
         super().__init__()
         self._engine = engine
         self._text = text
 
     def run(self):
+        """Run."""
         self.finished.emit(self._engine.get_response(self._text))
 
 
 class ChatPanel(QWidget):
+    """Scrollable message list + input bar for one engine (Lesson or Fix Code), including its own chat history for export."""
     def __init__(self, engine, welcome_text: str = "", parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self._engine = engine
         self._typing_bubble = None
@@ -43,6 +48,7 @@ class ChatPanel(QWidget):
 
     # ── build ────────────────────────────────────────────────────────────
     def _build(self):
+        """Build."""
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
@@ -75,12 +81,15 @@ class ChatPanel(QWidget):
 
     # ── public ───────────────────────────────────────────────────────────
     def set_placeholder(self, text: str):
+        """Set placeholder."""
         self._bar.set_placeholder(text)
 
     def focus_input(self):
+        """Focus input."""
         self._bar.focus()
 
     def clear_input(self):
+        """Clear input."""
         self._bar.clear_input()
 
     def inject_text(self, text: str):
@@ -117,6 +126,7 @@ class ChatPanel(QWidget):
 
     # ── private ──────────────────────────────────────────────────────────
     def _on_send(self, text: str):
+        """On send."""
         self._add_user_bubble(text)
         self._bar.set_enabled(False)
         self._show_typing()
@@ -130,29 +140,34 @@ class ChatPanel(QWidget):
         self._thread.start()
 
     def _on_response(self, text: str):
+        """On response."""
         self._remove_typing()
         self._add_ai_bubble(text)
         self._bar.set_enabled(True)
         self._bar.focus()
 
     def _add_user_bubble(self, text: str):
+        """Add user bubble."""
         b = MessageBubble(text, role="user")
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, b)
         self._history.append(("user", text))
         self._bottom()
 
     def _add_ai_bubble(self, text: str):
+        """Add ai bubble."""
         b = MessageBubble(text, role="ai")
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, b)
         self._history.append(("ai", text))
         self._bottom()
 
     def _show_typing(self):
+        """Show typing."""
         self._typing_bubble = MessageBubble(role="ai", is_typing=True)
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, self._typing_bubble)
         self._bottom()
 
     def _remove_typing(self):
+        """Remove typing."""
         if self._typing_bubble:
             self._typing_bubble.stop_typing()
             self._msg_lay.removeWidget(self._typing_bubble)
@@ -160,5 +175,6 @@ class ChatPanel(QWidget):
             self._typing_bubble = None
 
     def _bottom(self):
+        """Bottom."""
         bar = self._scroll.verticalScrollBar()
         bar.setValue(bar.maximum())
