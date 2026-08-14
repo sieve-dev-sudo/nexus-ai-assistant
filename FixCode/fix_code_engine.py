@@ -26,10 +26,13 @@ import re
 import ast
 import builtins as _builtins_mod
 import operator
+from typing import List, Tuple, Set, Optional, Dict, Any, Callable
 
 START_TRIGGERS = ("/start", "/help", "help", "menu")
 
 _BUILTIN_NAMES = set(dir(_builtins_mod))
+
+Issue = Tuple[int, str, str]  # (line_number, message, suggested_fix)
 
 INSTRUCTIONS = (
     "🛠 Fix Code Mode (LOCAL) : AI នឹងវិភាគ Python code ហើយ:\n\n"
@@ -119,7 +122,7 @@ def _print_similarity(word: str) -> bool:
 _CALL_RE = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*)\s*\(')
 
 
-def _fix_print_typos(code: str):
+def _fix_print_typos(code: str) -> Tuple[str, List[Issue]]:
     """R0: replace print-like typos (printf, Printtf, prnit …) with print."""
     issues = []
     lines = code.splitlines()
@@ -143,7 +146,7 @@ def _fix_print_typos(code: str):
 _PRINT_CASE_RE = re.compile(r'\b(print)\s*\(', re.IGNORECASE)
 
 
-def _fix_print_case(code: str):
+def _fix_print_case(code: str) -> Tuple[str, List[Issue]]:
     issues = []
     lines = code.splitlines()
     result = []
@@ -164,7 +167,7 @@ def _fix_print_case(code: str):
 _SEMI_RE = re.compile(r';\s*$')
 
 
-def _fix_semicolons(code: str):
+def _fix_semicolons(code: str) -> Tuple[str, List[Issue]]:
     issues = []
     lines = code.splitlines()
     result = []
@@ -193,7 +196,7 @@ _PY2_PRINT_SKIP_PREFIXES = ("=", "==", "!=", "<=", ">=", "+=", "-=", "*=",
                              "/=", "//=", "%=", "**=", ".", ",")
 
 
-def _fix_print_statement(code: str):
+def _fix_print_statement(code: str) -> Tuple[str, List[Issue]]:
     """R8: detect & wrap Python 2-style `print` statements."""
     issues = []
     lines = code.splitlines()
@@ -234,7 +237,7 @@ _INVALID_OPS = {
 }
 
 
-def _fix_invalid_operators(code: str):
+def _fix_invalid_operators(code: str) -> Tuple[str, List[Issue]]:
     """R9: `=<` `=>` `<>` (wrong order / Python-2 leftovers) → valid ops."""
     issues = []
     lines = code.splitlines()
@@ -250,7 +253,7 @@ def _fix_invalid_operators(code: str):
     return "\n".join(result), issues
 
 
-def _fix_operators_in_line(line: str):
+def _fix_operators_in_line(line: str) -> Tuple[str, List[Tuple[str, str]]]:
     """Replace invalid operators, but never inside string literals."""
     found = []
     in_str = False
@@ -319,7 +322,7 @@ _KEYWORD_TYPO_RE = re.compile(
 )
 
 
-def _fix_keyword_typos(code: str):
+def _fix_keyword_typos(code: str) -> Tuple[str, List[Issue]]:
     """R10: exact-match dictionary of common keyword misspellings."""
     issues = []
     lines = code.splitlines()
@@ -344,7 +347,7 @@ def _fix_keyword_typos(code: str):
 
 
 # ── R3: unclosed quotes / parens (+ triple-quote block awareness)
-def _fix_quotes_parens(code: str):
+def _fix_quotes_parens(code: str) -> Tuple[str, List[Issue]]:
     """Fix unclosed quotes/parens. Triple-quoted strings (\"\"\"...\"\"\")
     are recognised as ONE block that can legitimately span many lines —
     content inside an open triple-quote is left completely untouched
@@ -387,7 +390,7 @@ def _fix_quotes_parens(code: str):
     return "\n".join(result), issues
 
 
-def _fix_line(line: str, lineno: int):
+def _fix_line(line: str, lineno: int) -> Tuple[str, List[Issue], Optional[str]]:
     """Scan one line for unclosed quotes/parens/brackets/braces. Triple-quote
     markers (\"\"\" or \'\'\') are matched as a 3-char unit, distinct from a
     normal single quote, so a docstring's internal apostrophes/quotes
@@ -395,16 +398,16 @@ def _fix_line(line: str, lineno: int):
     open_triple_marker_or_None) — the third value tells the caller the
     triple-quoted string is still open at end-of-line and must continue
     on the next line."""
-    issues = []
+    issues: List[Issue] = []
     in_str = False
-    q_char = None
+    q_char: Optional[str] = None
     paren_depth = 0
     bracket_depth = 0
     brace_depth = 0
     i = 0
     n = len(line)
-    out = []
-    triple_open = None
+    out: List[str] = []
+    triple_open: Optional[str] = None
 
     while i < n:
         c = line[i]
@@ -454,8 +457,8 @@ def _fix_line(line: str, lineno: int):
         out.append(c)
         i += 1
 
-    added = []
-    if in_str:
+    added: List[str] = []
+    if in_str and q_char is not None:
         added.append(q_char)
         issues.append((lineno,
                        f"Quote '{q_char}' មិនបានបិទ string",
@@ -491,7 +494,7 @@ _STRING_LITERAL_RE = re.compile(
 _PLACEHOLDER_RE = re.compile(r'\{[A-Za-z_][^{}]*\}')
 
 
-def _fix_missing_fstring(code: str):
+def _fix_missing_fstring(code: str) -> Tuple[str, List[Issue]]:
     """R15: add a missing `f` prefix to a string that has a {placeholder}
     but isn't an f-string (and isn't feeding a later .format() call)."""
     issues = []
@@ -527,7 +530,7 @@ def _fix_missing_fstring(code: str):
 _ELSE_IF_RE = re.compile(r'^(\s*)else\s+if\b(.*)$')
 
 
-def _fix_else_if(code: str):
+def _fix_else_if(code: str) -> Tuple[str, List[Issue]]:
     """R11: `else if x:` → `elif x:` (invalid in Python — no 'else if')."""
     issues = []
     lines = code.splitlines()
@@ -550,7 +553,7 @@ def _fix_else_if(code: str):
 _RAW_INPUT_RE = re.compile(r'\braw_input\s*\(')
 
 
-def _fix_raw_input(code: str):
+def _fix_raw_input(code: str) -> Tuple[str, List[Issue]]:
     """R12: `raw_input(` (Python 2) → `input(` (Python 3)."""
     issues = []
     lines = code.splitlines()
@@ -572,7 +575,7 @@ _INCDEC_POSTFIX_RE = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*)\s*(\+\+|--)')
 _INCDEC_PREFIX_RE = re.compile(r'(\+\+|--)\s*([A-Za-z_][A-Za-z0-9_]*)\b')
 
 
-def _fix_increment_decrement(code: str):
+def _fix_increment_decrement(code: str) -> Tuple[str, List[Issue]]:
     """R13: `x++`/`x--`/`++x`/`--x` → `x += 1` / `x -= 1`."""
     issues = []
     lines = code.splitlines()
@@ -615,12 +618,12 @@ def _fix_increment_decrement(code: str):
 _DEF_PARAMS_RE = re.compile(r'^\s*def\s+\w+\s*\((.*)\)\s*:?\s*$')
 
 
-def _split_params(params: str):
+def _split_params(params: str) -> List[str]:
     """Split a parameter list on top-level commas only (ignores commas
     nested inside [], {}, () — e.g. inside a default value)."""
     depth = 0
-    current = []
-    parts = []
+    current: List[str] = []
+    parts: List[str] = []
     for ch in params:
         if ch in '([{':
             depth += 1
@@ -636,7 +639,7 @@ def _split_params(params: str):
     return parts
 
 
-def _detect_mutable_defaults(code: str):
+def _detect_mutable_defaults(code: str) -> List[Issue]:
     """R16: warn about mutable (list/dict) default argument values."""
     issues = []
     lines = code.splitlines()
@@ -671,10 +674,10 @@ _EXTRA_KNOWN_NAMES = {"self", "cls", "__name__", "__file__", "__doc__",
                       "__class__", "__module__", "__qualname__"}
 
 
-def _collect_defined_names(tree) -> set:
+def _collect_defined_names(tree: ast.AST) -> Set[str]:
     defined = set(_EXTRA_KNOWN_NAMES)
 
-    def add_target(node):
+    def add_target(node: Optional[ast.AST]) -> None:
         if isinstance(node, ast.Name):
             defined.add(node.id)
         elif isinstance(node, (ast.Tuple, ast.List)):
@@ -730,17 +733,17 @@ def _collect_defined_names(tree) -> set:
     return defined
 
 
-def _detect_undefined_names(code: str):
+def _detect_undefined_names(code: str) -> List[Issue]:
     """R17: warn about a name that's used but never defined/imported
     anywhere in the file, and isn't a Python builtin."""
-    issues = []
+    issues: List[Issue] = []
     try:
         tree = ast.parse(code)
     except SyntaxError:
         return issues
 
     defined = _collect_defined_names(tree)
-    seen = {}  # name -> first lineno used
+    seen: Dict[str, int] = {}  # name -> first lineno used
     for node in ast.walk(tree):
         if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
             if node.id not in seen or node.lineno < seen[node.id]:
@@ -760,10 +763,10 @@ _RANGE_LEN_PLUS1_RE = re.compile(r'\brange\s*\(\s*len\([^()]*\)\s*\+\s*1\s*\)')
 _LE_LEN_RE = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\s*<=\s*len\(')
 
 
-def _detect_off_by_one(code: str):
+def _detect_off_by_one(code: str) -> List[Issue]:
     """R18: `range(len(x) + 1)` and `i <= len(x)` are classic off-by-one
     patterns — valid indices only go up to len(x) - 1."""
-    issues = []
+    issues: List[Issue] = []
     lines = code.splitlines()
     for lineno, line in enumerate(lines, 1):
         if line.lstrip().startswith("#"):
@@ -782,12 +785,12 @@ def _detect_off_by_one(code: str):
 
 
 # ── R19: `is` / `is not` compared against a literal — should be == / !=
-def _detect_is_literal(code: str):
+def _detect_is_literal(code: str) -> List[Issue]:
     """R19: `x is 5`, `x is "a"` etc. `is` checks object identity, not
     value equality; comparing against a literal is almost always a bug
     (it can even give inconsistent results depending on Python's
     internal small-int/string caching)."""
-    issues = []
+    issues: List[Issue] = []
     try:
         tree = ast.parse(code)
     except SyntaxError:
@@ -824,7 +827,7 @@ _CONTROL_KEYWORDS_RE = re.compile(
 )
 
 
-def _fix_missing_colons(code: str):
+def _fix_missing_colons(code: str) -> Tuple[str, List[Issue]]:
     """Detect if/elif/else/for/while/def/class/try/except/finally missing ':'."""
     issues = []
     lines = code.splitlines()
@@ -847,7 +850,7 @@ def _fix_missing_colons(code: str):
 
 
 # ── R6: assignment (=) instead of comparison (==) inside if/while
-def _fix_logic_errors(code: str):
+def _fix_logic_errors(code: str) -> Tuple[str, List[Issue]]:
     """Detect AND fix `=` where `==` was almost certainly intended."""
     issues = []
     lines = code.splitlines()
@@ -869,7 +872,7 @@ def _fix_logic_errors(code: str):
 
 
 # ── R7: mixed tabs/spaces (normalizes tabs → 4 spaces) + big indent jumps
-def _fix_indentation_issues(code: str):
+def _fix_indentation_issues(code: str) -> Tuple[str, List[Issue]]:
     """Detect AND fix mixed tabs/spaces; only touches leading whitespace —
     tabs inside string content elsewhere on a line are never touched."""
     issues = []
@@ -918,13 +921,13 @@ def _fix_indentation_issues(code: str):
     return "\n".join(result), issues
 
 
-def _compute_output(code: str) -> list:
-    output = []
+def _compute_output(code: str) -> List[str]:
+    output: List[str] = []
     try:
         tree = ast.parse(code)
     except SyntaxError:
         return []
-    env = {}
+    env: Dict[str, Any] = {}
     _collect_vars(tree, env)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Expr):
@@ -944,11 +947,11 @@ def _compute_output(code: str) -> list:
     return output
 
 
-def _is_print(call):
+def _is_print(call: ast.Call) -> bool:
     return isinstance(call.func, ast.Name) and call.func.id == "print"
 
 
-def _collect_vars(tree, env):
+def _collect_vars(tree: ast.AST, env: Dict[str, Any]) -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
             for t in node.targets:
@@ -988,10 +991,12 @@ _CMP_OPS = {
     ast.In: lambda a, b: a in b,
     ast.NotIn: lambda a, b: a not in b,
 }
-_UNARY = {ast.UAdd: operator.pos, ast.USub: operator.neg, ast.Not: operator.not_}
+_UNARY: Dict[type, Callable[[Any], Any]] = {
+    ast.UAdd: operator.pos, ast.USub: operator.neg, ast.Not: operator.not_
+}
 
 
-def _eval(node, env):
+def _eval(node: Optional[ast.AST], env: Dict[str, Any]) -> Any:
     try:
         if isinstance(node, ast.Constant):
             return node.value
@@ -1018,8 +1023,8 @@ def _eval(node, env):
             return None
         if isinstance(node, ast.UnaryOp):
             v = _eval(node.operand, env)
-            fn = _UNARY.get(type(node.op))
-            return fn(v) if fn and v is not None else None
+            ufn = _UNARY.get(type(node.op))
+            return ufn(v) if ufn and v is not None else None
         if isinstance(node, ast.Compare):
             left = _eval(node.left, env)
             if left is None:
