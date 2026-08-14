@@ -1,0 +1,1 @@
+"""Fix Code mode: local, rule-based Python error detection and auto-fixing."""
