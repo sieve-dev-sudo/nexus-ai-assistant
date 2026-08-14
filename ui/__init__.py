@@ -1,0 +1,1 @@
+"""PyQt5 UI layer: main window, sidebar, chat panel, and supporting widgets."""
