@@ -14,7 +14,7 @@ from LessonCodePython.theme import C
 from ui.main_window import MainWindow
 from ui.icons import python_logo_icon
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 
 def build_dark_palette() -> QPalette:
