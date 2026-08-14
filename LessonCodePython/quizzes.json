@@ -2,89 +2,386 @@
   "basic": [
     {
       "question": "តើ Python ប្រើសញ្ញាអ្វីសម្រាប់ comment មួយជួរ?",
-      "options": ["//", "#", "/* */", "--"],
+      "options": [
+        "//",
+        "#",
+        "/* */",
+        "--"
+      ],
       "answer": 1,
       "explain": "Python ប្រើ '#' សម្រាប់ comment មួយជួរ (ឧ. # នេះជា comment)។"
+    },
+    {
+      "question": "តើ Python ប្រើ Indentation ប៉ុន្មាន spaces ជាស្តង់ដារ?",
+      "options": [
+        "2",
+        "4",
+        "8",
+        "Tab តែម្តង"
+      ],
+      "answer": 1,
+      "explain": "Python ប្រើ 4 spaces ជា indentation ស្តង់ដារសម្រាប់កំណត់ block នៃកូដ។"
+    },
+    {
+      "question": "តើ file កូដ Python រក្សាទុកជា extension អ្វី?",
+      "options": [
+        ".py",
+        ".python",
+        ".pt",
+        ".pyt"
+      ],
+      "answer": 0,
+      "explain": "កូដ Python រក្សាទុកជា file មាន extension '.py' (ឧ. my_program.py)។"
     }
   ],
   "variables": [
     {
       "question": "តើ Data Type ណាមួយខាងក្រោមតំណាងលេខទសភាគ?",
-      "options": ["int", "str", "float", "bool"],
+      "options": [
+        "int",
+        "str",
+        "float",
+        "bool"
+      ],
       "answer": 2,
       "explain": "float ជា Data Type សម្រាប់លេខទសភាគ (ឧ. 19.99)។"
+    },
+    {
+      "question": "តើ Data Type ណាមួយតំណាងលេខគត់?",
+      "options": [
+        "float",
+        "int",
+        "str",
+        "bool"
+      ],
+      "answer": 1,
+      "explain": "int ជា Data Type សម្រាប់លេខគត់ (ឧ. age = 25)។"
+    },
+    {
+      "question": "តើឈ្មោះ variable ណាមួយត្រឹមត្រូវតាមច្បាប់ Python?",
+      "options": [
+        "1name",
+        "my-name",
+        "user1",
+        "class"
+      ],
+      "answer": 2,
+      "explain": "'user1' ត្រឹមត្រូវ។ '1name' ចាប់ផ្តើមដោយលេខ, 'my-name' មាន '-', 'class' ជា reserved word។"
     }
   ],
   "operators": [
     {
       "question": "តើ operator ណាមួយប្រើសម្រាប់ 'ប្រៀបធៀប' (Comparison) ក្នុង Python?",
-      "options": ["=", "==", ":=", "+="],
+      "options": [
+        "=",
+        "==",
+        ":=",
+        "+="
+      ],
       "answer": 1,
       "explain": "'==' ប្រើសម្រាប់ប្រៀបធៀបតម្លៃ ចំណែក '=' ប្រើសម្រាប់ assignment ប៉ុណ្ណោះ។"
+    },
+    {
+      "question": "តើ operator ណាមួយសម្រាប់រកសល់ (remainder) ក្នុងការចែក?",
+      "options": [
+        "//",
+        "%",
+        "**",
+        "/"
+      ],
+      "answer": 1,
+      "explain": "'%' ត្រឡប់សល់ពីការចែក (ឧ. 10 % 3 = 1)។"
+    },
+    {
+      "question": "តើ 'and', 'or', 'not' ជា operator ប្រភេទណា?",
+      "options": [
+        "Arithmetic",
+        "Comparison",
+        "Logical",
+        "Assignment"
+      ],
+      "answer": 2,
+      "explain": "'and'/'or'/'not' ជា Logical operator សម្រាប់ផ្សំ condition ច្រើនជាមួយគ្នា។"
     }
   ],
   "conditional": [
     {
       "question": "តើ keyword ណាមួយប្រើសម្រាប់ពិនិត្យ condition បន្ថែម ក្រោយ 'if'?",
-      "options": ["else if", "elseif", "elif", "elsif"],
+      "options": [
+        "else if",
+        "elseif",
+        "elif",
+        "elsif"
+      ],
       "answer": 2,
       "explain": "Python ប្រើ 'elif' (មិនមែន 'else if' ដូច C/JS ទេ)។"
+    },
+    {
+      "question": "តើ keyword ណាមួយប្រតិបត្តិ ប្រសិនបើគ្មាន condition ណាមួយខាងលើជា True?",
+      "options": [
+        "if",
+        "elif",
+        "else",
+        "while"
+      ],
+      "answer": 2,
+      "explain": "'else' ប្រតិបត្តិប្រសិនបើគ្មាន condition ណាមួយ (if/elif) ខាងលើជា True។"
+    },
+    {
+      "question": "តើ if statement ត្រូវការសញ្ញាអ្វីនៅចុងបន្ទាត់?",
+      "options": [
+        ";",
+        ":",
+        "{}",
+        "->"
+      ],
+      "answer": 1,
+      "explain": "Python តម្រូវឲ្យមាន ':' នៅចុងបន្ទាត់ if/elif/else។"
     }
   ],
   "loop": [
     {
       "question": "តើ keyword ណាមួយបញ្ឈប់ loop ភ្លាមៗ?",
-      "options": ["continue", "stop", "break", "exit"],
+      "options": [
+        "continue",
+        "stop",
+        "break",
+        "exit"
+      ],
       "answer": 2,
       "explain": "'break' បញ្ឈប់ loop ភ្លាមៗ, ចំណែក 'continue' រំលងទៅ iteration បន្ទាប់ប៉ុណ្ណោះ។"
+    },
+    {
+      "question": "តើ keyword ណាមួយរំលងទៅ iteration បន្ទាប់ភ្លាមៗ?",
+      "options": [
+        "break",
+        "continue",
+        "pass",
+        "return"
+      ],
+      "answer": 1,
+      "explain": "'continue' រំលងទៅ iteration បន្ទាប់ភ្លាមៗ ចំណែក 'break' បញ្ឈប់ loop ទាំងមូល។"
+    },
+    {
+      "question": "តើ range(5) បង្កើតលេខអ្វីខ្លះ?",
+      "options": [
+        "1,2,3,4,5",
+        "0,1,2,3,4",
+        "0,1,2,3,4,5",
+        "1,2,3,4"
+      ],
+      "answer": 1,
+      "explain": "range(5) ចាប់ពី 0 ដល់ 4 (5 ធាតុ, មិនរួមបញ្ចូល 5)។"
     }
   ],
   "array": [
     {
       "question": "តើ method ណាមួយប្រើសម្រាប់បន្ថែមធាតុនៅចុង list?",
-      "options": ["insert()", "append()", "add()", "push()"],
+      "options": [
+        "insert()",
+        "append()",
+        "add()",
+        "push()"
+      ],
       "answer": 1,
       "explain": "'append()' បន្ថែមធាតុនៅចុង list ។ 'add()' ជា method របស់ set មិនមែន list ទេ។"
+    },
+    {
+      "question": "តើវិធីណាមួយត្រឹមត្រូវសម្រាប់ access ធាតុចុងក្រោយនៃ list?",
+      "options": [
+        "list[0]",
+        "list[-1]",
+        "list[end]",
+        "list[last]"
+      ],
+      "answer": 1,
+      "explain": "list[-1] ត្រឡប់ធាតុចុងក្រោយ។ Python គាំទ្រ negative index។"
+    },
+    {
+      "question": "តើ method ណាមួយលុបធាតុតាម index?",
+      "options": [
+        "remove()",
+        "pop()",
+        "delete()",
+        "clear()"
+      ],
+      "answer": 1,
+      "explain": "pop(index) លុបធាតុតាម index។ remove(value) លុបតាមតម្លៃវិញ។"
     }
   ],
   "function": [
     {
       "question": "បើ function គ្មាន 'return' statement តើវាត្រឡប់តម្លៃអ្វី?",
-      "options": ["0", "\"\" (empty string)", "None", "Error"],
+      "options": [
+        "0",
+        "\"\" (empty string)",
+        "None",
+        "Error"
+      ],
       "answer": 2,
       "explain": "Function ដែលគ្មាន 'return' នឹងត្រឡប់ 'None' ជានិច្ច។"
+    },
+    {
+      "question": "តើ keyword ណាមួយប្រកាស function ថ្មីក្នុង Python?",
+      "options": [
+        "func",
+        "function",
+        "def",
+        "lambda"
+      ],
+      "answer": 2,
+      "explain": "'def' ជា keyword សម្រាប់ប្រកាស function ថ្មី។"
+    },
+    {
+      "question": "តើ default parameter ត្រូវប្រើពេលណា?",
+      "options": [
+        "ពេលមាន loop",
+        "ពេលមិនបានផ្តល់តម្លៃ argument ពេលហៅ",
+        "ពេលធ្វើ return",
+        "ពេល import module"
+      ],
+      "answer": 1,
+      "explain": "Default parameter ផ្តល់តម្លៃលំនាំដើម ប្រសិនបើគ្មានការផ្តល់តម្លៃពេលហៅ function។"
     }
   ],
   "data_structures": [
     {
       "question": "តើ Data Structure ណាមួយ Immutable (កែប្រែពុំបាន)?",
-      "options": ["List", "Dictionary", "Set", "Tuple"],
+      "options": [
+        "List",
+        "Dictionary",
+        "Set",
+        "Tuple"
+      ],
       "answer": 3,
       "explain": "Tuple ជា Immutable — ម្តងបង្កើតរួច មិនអាចកែប្រែធាតុខាងក្នុងបានទៀត។"
+    },
+    {
+      "question": "តើ Data Structure ណាមួយ Unordered និង មិនអនុញ្ញាត duplicate?",
+      "options": [
+        "List",
+        "Tuple",
+        "Set",
+        "Dictionary"
+      ],
+      "answer": 2,
+      "explain": "Set ជា Unordered និងលុប duplicate ដោយស្វ័យប្រវត្តិ។"
+    },
+    {
+      "question": "តើ Dictionary ប្រើសញ្ញាអ្វីសម្រាប់បង្កើត?",
+      "options": [
+        "[ ]",
+        "( )",
+        "{ }",
+        "< >"
+      ],
+      "answer": 2,
+      "explain": "Dictionary ប្រើ { key: value } (ឧ. person = {\"name\": \"Dara\"})។"
     }
   ],
   "functions_advanced": [
     {
       "question": "តើ '*args' ក្នុង function parameter ក្លាយជា Data Type អ្វី?",
-      "options": ["list", "dict", "tuple", "set"],
+      "options": [
+        "list",
+        "dict",
+        "tuple",
+        "set"
+      ],
       "answer": 2,
       "explain": "'*args' ខ្ចប់ positional arguments ទាំងអស់ជា tuple ។"
+    },
+    {
+      "question": "តើ **kwargs ក្នុង function parameter ក្លាយជា Data Type អ្វី?",
+      "options": [
+        "list",
+        "tuple",
+        "dict",
+        "set"
+      ],
+      "answer": 2,
+      "explain": "'**kwargs' ខ្ចប់ keyword arguments ទាំងអស់ជា dict។"
+    },
+    {
+      "question": "តើ lambda function អាចមាន expression ប៉ុន្មាន?",
+      "options": [
+        "1",
+        "2",
+        "ច្រើនតាមចង់",
+        "0"
+      ],
+      "answer": 0,
+      "explain": "Lambda function ជា anonymous function ខ្លីមួយ expression ប៉ុណ្ណោះ។"
     }
   ],
   "file_handling": [
     {
       "question": "តើ mode ណាមួយ 'បន្ថែម' ទិន្នន័យទៅ file ដោយមិនលុបទិន្នន័យចាស់?",
-      "options": ["'w'", "'r'", "'a'", "'x'"],
+      "options": [
+        "'w'",
+        "'r'",
+        "'a'",
+        "'x'"
+      ],
       "answer": 2,
       "explain": "'a' (append) បន្ថែមទិន្នន័យថ្មីខាងចុង file ដោយមិនលុបទិន្នន័យចាស់ចោល។"
+    },
+    {
+      "question": "តើ mode ណាមួយសរសេរជាថ្មី (overwrite) file ចាស់?",
+      "options": [
+        "'r'",
+        "'w'",
+        "'a'",
+        "'x'"
+      ],
+      "answer": 1,
+      "explain": "'w' (write) សរសេរជាថ្មី ជំនួសទិន្នន័យចាស់ទាំងអស់។"
+    },
+    {
+      "question": "តើវិធីណាមួយបិទ file ដោយស្វ័យប្រវត្តិ?",
+      "options": [
+        "open()",
+        "close()",
+        "with statement",
+        "read()"
+      ],
+      "answer": 2,
+      "explain": "'with' statement បិទ file ដោយស្វ័យប្រវត្តិ មិនចាំបាច់ហៅ f.close() ខ្លួនឯង។"
     }
   ],
   "oop": [
     {
       "question": "តើ method ណាមួយហៅដោយស្វ័យប្រវត្តិពេលបង្កើត object ថ្មី?",
-      "options": ["__str__", "__init__", "__main__", "__new__"],
+      "options": [
+        "__str__",
+        "__init__",
+        "__main__",
+        "__new__"
+      ],
       "answer": 1,
       "explain": "'__init__' ជា Constructor ដែលហៅដោយស្វ័យប្រវត្តិពេលបង្កើត object (instance) ថ្មី។"
+    },
+    {
+      "question": "តើ method ណាមួយហៅ constructor របស់ class មេ?",
+      "options": [
+        "self.init()",
+        "super().__init__()",
+        "parent()",
+        "base()"
+      ],
+      "answer": 1,
+      "explain": "super().__init__() ហៅ constructor របស់ class មេ (parent class)។"
+    },
+    {
+      "question": "តើ 'self' តំណាងឲ្យអ្វី?",
+      "options": [
+        "Class ខ្លួនឯង",
+        "Object (instance) ខ្លួនឯង",
+        "Function",
+        "Module"
+      ],
+      "answer": 1,
+      "explain": "'self' សំដៅទៅ object (instance) ខ្លួនឯង ត្រូវដាក់ជា parameter ទីមួយក្នុង method។"
     }
   ]
 }
