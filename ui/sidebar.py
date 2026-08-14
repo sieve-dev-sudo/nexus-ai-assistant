@@ -191,6 +191,9 @@ class Sidebar(QWidget):
         )
         root.addWidget(credit_lbl)
 
+    def focus_search(self):
+        self._search_box.setFocus()
+
     def _filter_topics(self, text: str):
         query = text.strip().lower()
         any_visible = False
