@@ -129,6 +129,7 @@ def _fix_print_typos(code: str) -> Tuple[str, List[Issue]]:
     result = []
     for lineno, line in enumerate(lines, 1):
         def _repl(m):
+            """Repl."""
             word = m.group(1)
             if _print_similarity(word):
                 issues.append((lineno,
@@ -147,11 +148,13 @@ _PRINT_CASE_RE = re.compile(r'\b(print)\s*\(', re.IGNORECASE)
 
 
 def _fix_print_case(code: str) -> Tuple[str, List[Issue]]:
+    """R1: normalize print case variants (Print, PRINT, PrInT) to print."""
     issues = []
     lines = code.splitlines()
     result = []
     for lineno, line in enumerate(lines, 1):
         def _repl(m):
+            """Repl."""
             word = m.group(1)
             if word != "print":
                 issues.append((lineno,
@@ -168,6 +171,7 @@ _SEMI_RE = re.compile(r';\s*$')
 
 
 def _fix_semicolons(code: str) -> Tuple[str, List[Issue]]:
+    """R2: strip trailing semicolons (not required/used in Python)."""
     issues = []
     lines = code.splitlines()
     result = []
@@ -334,6 +338,7 @@ def _fix_keyword_typos(code: str) -> Tuple[str, List[Issue]]:
             continue
 
         def _repl(m):
+            """Repl."""
             typo = m.group(1)
             correct = _KEYWORD_TYPOS[typo]
             issues.append((lineno,
@@ -506,6 +511,7 @@ def _fix_missing_fstring(code: str) -> Tuple[str, List[Issue]]:
             continue
 
         def _repl(m):
+            """Repl."""
             prefix = m.group('prefix')
             q = m.group('q')
             if 'f' in prefix.lower() or 'b' in prefix.lower():
@@ -588,6 +594,7 @@ def _fix_increment_decrement(code: str) -> Tuple[str, List[Issue]]:
         found = []
 
         def _repl_post(m):
+            """Repl post."""
             name, op = m.group(1), m.group(2)
             found.append((f"{name}{op}", f"{name} {'+=' if op == '++' else '-='} 1"))
             return f"{name} {'+=' if op == '++' else '-='} 1"
@@ -595,6 +602,7 @@ def _fix_increment_decrement(code: str) -> Tuple[str, List[Issue]]:
         new_line = _INCDEC_POSTFIX_RE.sub(_repl_post, new_line)
 
         def _repl_pre(m):
+            """Repl pre."""
             op, name = m.group(1), m.group(2)
             found.append((f"{op}{name}", f"{name} {'+=' if op == '++' else '-='} 1"))
             return f"{name} {'+=' if op == '++' else '-='} 1"
@@ -675,9 +683,11 @@ _EXTRA_KNOWN_NAMES = {"self", "cls", "__name__", "__file__", "__doc__",
 
 
 def _collect_defined_names(tree: ast.AST) -> Set[str]:
+    """Walk the AST and collect every name the file defines (functions, classes, assignments, imports, loop/comprehension targets, etc.) for R17's undefined-name check."""
     defined = set(_EXTRA_KNOWN_NAMES)
 
     def add_target(node: Optional[ast.AST]) -> None:
+        """Add target."""
         if isinstance(node, ast.Name):
             defined.add(node.id)
         elif isinstance(node, (ast.Tuple, ast.List)):
@@ -922,6 +932,7 @@ def _fix_indentation_issues(code: str) -> Tuple[str, List[Issue]]:
 
 
 def _compute_output(code: str) -> List[str]:
+    """R4: best-effort evaluation of print() calls in the code, to show a predicted output."""
     output: List[str] = []
     try:
         tree = ast.parse(code)
@@ -948,10 +959,12 @@ def _compute_output(code: str) -> List[str]:
 
 
 def _is_print(call: ast.Call) -> bool:
+    """Return True if this ast.Call node is a call to the builtin print()."""
     return isinstance(call.func, ast.Name) and call.func.id == "print"
 
 
 def _collect_vars(tree: ast.AST, env: Dict[str, Any]) -> None:
+    """Walk the AST and populate env with simple, staticly-evaluable variable assignments, for use by _compute_output."""
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
             for t in node.targets:
@@ -997,6 +1010,7 @@ _UNARY: Dict[type, Callable[[Any], Any]] = {
 
 
 def _eval(node: Optional[ast.AST], env: Dict[str, Any]) -> Any:
+    """Best-effort static evaluation of a single AST expression node using the values already collected in env."""
     try:
         if isinstance(node, ast.Constant):
             return node.value
@@ -1055,6 +1069,7 @@ def _eval(node: Optional[ast.AST], env: Dict[str, Any]) -> Any:
 
 # ── main pipeline
 def _analyze(code: str) -> str:
+    """Run every Fix Code rule over the given code in sequence, then format the combined error/fix/output report."""
     issues = []
 
     code, i0 = _fix_print_typos(code)
@@ -1132,7 +1147,9 @@ def _analyze(code: str) -> str:
 
 
 class FixCodeEngine:
+    """Public entry point for Fix Code mode: analyzes pasted Python code and returns a formatted report of errors, the fixed code, and the predicted output."""
     def get_response(self, user_input: str) -> str:
+        """Analyze the given code (or show the instructions for empty/'/start' input) and return the formatted report."""
         s = user_input.strip()
         if not s or s.lower() in START_TRIGGERS:
             return INSTRUCTIONS
