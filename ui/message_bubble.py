@@ -25,6 +25,7 @@ class CodeBlock(QTextEdit):
     V_PAD = 32   # top+bottom padding inside the box
 
     def __init__(self, code: str, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.setReadOnly(True)
         self.setPlainText(code)
@@ -67,21 +68,25 @@ class CodeBlock(QTextEdit):
         self._position_copy_button()
 
     def _position_copy_button(self):
+        """Position copy button."""
         margin = 6
         self._copy_btn.move(
             max(self.width() - self._copy_btn.width() - margin, margin), margin
         )
 
     def resizeEvent(self, event):
+        """ResizeEvent."""
         super().resizeEvent(event)
         self._position_copy_button()
 
     def _copy_code(self):
+        """Copy code."""
         QGuiApplication.clipboard().setText(self.toPlainText())
         self._copy_btn.setText("✓ Copied")
         QTimer.singleShot(1200, lambda: self._copy_btn.setText("📋 Copy"))
 
     def _calc_height(self, code: str) -> int:
+        """Calc height."""
         fm = QFontMetrics(self._font)
         line_h = fm.height() + self.H_LINE_EXTRA
         lines = code.split("\n")
@@ -90,21 +95,26 @@ class CodeBlock(QTextEdit):
         return max(min(h, 640), 40)
 
     def sizeHint(self) -> QSize:
+        """SizeHint."""
         return QSize(self.width(), self._target_h)
 
     def minimumSizeHint(self) -> QSize:
+        """MinimumSizeHint."""
         return QSize(200, self._target_h)
 
 
 class MessageBubble(QWidget):
+    """One chat message: renders plain text and fenced ```code``` blocks, with a typing-dots state for pending AI replies."""
     def __init__(self, text: str = "", role: str = "ai",
                  is_typing: bool = False, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.role = role
         self._dots = None
         self._setup(text, is_typing)
 
     def _setup(self, text: str, is_typing: bool):
+        """Setup."""
         outer = QHBoxLayout(self)
         outer.setContentsMargins(0, 6, 0, 6)
         outer.setSpacing(10)
@@ -145,6 +155,7 @@ class MessageBubble(QWidget):
             outer.addStretch()
 
     def _render(self, text: str, layout: QVBoxLayout):
+        """Render."""
         parts = re.split(r"```(?:python|output|)?\n?(.*?)```",
                          text, flags=re.DOTALL)
         for idx, part in enumerate(parts):
@@ -170,5 +181,6 @@ class MessageBubble(QWidget):
                 layout.addWidget(lbl)
 
     def stop_typing(self):
+        """Stop typing."""
         if self._dots:
             self._dots.stop()
