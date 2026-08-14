@@ -12,13 +12,16 @@ from LessonCodePython.theme import C, F
 
 
 class InputBar(QWidget):
+    """The bottom text box + send button, shared by both chat modes."""
     submitted = pyqtSignal(str)
 
     def __init__(self, placeholder: str = "Type a message…", parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self._build(placeholder)
 
     def _build(self, placeholder: str):
+        """Build."""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(14, 10, 14, 10)
         layout.setSpacing(10)
@@ -45,32 +48,39 @@ class InputBar(QWidget):
         )
 
     def _on_send(self):
+        """On send."""
         text = self._editor.toPlainText().strip()
         if text:
             self.submitted.emit(text)
             self._editor.clear()
 
     def set_enabled(self, enabled: bool):
+        """Set enabled."""
         self._editor.setEnabled(enabled)
         self._btn.setEnabled(enabled)
 
     def set_placeholder(self, text: str):
+        """Set placeholder."""
         self._editor.setPlaceholderText(text)
 
     def focus(self):
+        """Focus."""
         self._editor.setFocus()
 
     def clear_input(self):
+        """Clear input."""
         self._editor.clear()
 
 
 class _GrowingTextEdit(QTextEdit):
+    """A QTextEdit that grows in height as the user types, up to a max."""
     returnPressed = pyqtSignal()
 
     LINES_MIN = 2    # always show at least 2 lines
     LINES_MAX = 8    # grow up to 8 lines then scroll
 
     def __init__(self, placeholder: str, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.setPlaceholderText(placeholder)
         font = QFont("Segoe UI", F["input"])
@@ -95,6 +105,7 @@ class _GrowingTextEdit(QTextEdit):
         )
 
     def _adjust(self):
+        """Adjust."""
         doc_h = int(self.document().size().height())
         new_h = max(self._min_h, min(doc_h + self._pad, self._max_h))
         if self.height() != new_h:
@@ -104,6 +115,7 @@ class _GrowingTextEdit(QTextEdit):
                 self.parentWidget().adjustSize()
 
     def keyPressEvent(self, event):
+        """KeyPressEvent."""
         if (event.key() in (Qt.Key_Return, Qt.Key_Enter)
                 and not (event.modifiers() & Qt.ShiftModifier)):
             self.returnPressed.emit()
