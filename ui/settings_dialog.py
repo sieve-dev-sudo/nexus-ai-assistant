@@ -17,7 +17,9 @@ from LessonCodePython.settings_manager import load_settings, save_settings
 
 
 class SettingsDialog(QDialog):
+    """Modal dialog for choosing the theme and font size (applies on restart)."""
     def __init__(self, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setFixedSize(360, 220)
@@ -27,6 +29,7 @@ class SettingsDialog(QDialog):
         self._build()
 
     def _build(self):
+        """Build."""
         root = QVBoxLayout(self)
         root.setContentsMargins(20, 20, 20, 20)
         root.setSpacing(16)
@@ -82,6 +85,7 @@ class SettingsDialog(QDialog):
         root.addLayout(btn_row)
 
     def _on_save(self):
+        """On save."""
         new_settings = {
             "theme": "light" if self._theme_combo.currentText() == "Light" else "dark",
             "font_scale": self._font_slider.value() / 100,
