@@ -42,6 +42,7 @@ _PYTHON_LOGO_SVG = f"""
 
 
 def _draw_fallback(size: int) -> QPixmap:
+    """Draw fallback."""
     renderer = QSvgRenderer(QByteArray(_PYTHON_LOGO_SVG.encode("utf-8")))
     pixmap = QPixmap(size, size)
     pixmap.fill(Qt.transparent)
