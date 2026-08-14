@@ -18,6 +18,7 @@ __version__ = "1.1.0"
 
 
 def build_dark_palette() -> QPalette:
+    """Build the app-wide QPalette from the current theme colors."""
     pal = QPalette()
     pal.setColor(QPalette.Window,          QColor(C["bg_main"]))
     pal.setColor(QPalette.WindowText,      QColor(C["text_primary"]))
@@ -33,6 +34,7 @@ def build_dark_palette() -> QPalette:
 
 
 def main():
+    """Create the QApplication, apply the theme, show the main window, and run the event loop."""
     app = QApplication(sys.argv)
     app.setApplicationName("Nexus AI — Python Assistant")
     app.setApplicationVersion(__version__)
