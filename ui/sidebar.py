@@ -28,6 +28,7 @@ TOPICS = [
 
 
 def _sidebar_width() -> int:
+    """Sidebar width."""
     font = QFont("Segoe UI", F["topic"])
     fm = QFontMetrics(font)
     widest = max(fm.horizontalAdvance(label) for _, label in TOPICS)
@@ -52,6 +53,7 @@ _SEARCH_INDEX = _build_search_index()
 
 
 class Sidebar(QWidget):
+    """Left-hand panel: mode switcher, searchable topic list, and chat-tool buttons."""
     mode_changed = pyqtSignal(str)
     topic_selected = pyqtSignal(str)
     export_requested = pyqtSignal()
@@ -60,12 +62,14 @@ class Sidebar(QWidget):
     settings_requested = pyqtSignal()
 
     def __init__(self, parent=None):
+        """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.setFixedWidth(_sidebar_width())
         self.setStyleSheet(f"background:{C['bg_sidebar']};")
         self._build()
 
     def _build(self):
+        """Build."""
         root = QVBoxLayout(self)
         root.setContentsMargins(10, 14, 10, 14)
         root.setSpacing(4)
@@ -192,9 +196,11 @@ class Sidebar(QWidget):
         root.addWidget(credit_lbl)
 
     def focus_search(self):
+        """Focus search."""
         self._search_box.setFocus()
 
     def _filter_topics(self, text: str):
+        """Filter topics."""
         query = text.strip().lower()
         any_visible = False
         for key, btn in self._topic_buttons.items():
@@ -204,6 +210,7 @@ class Sidebar(QWidget):
         self._no_results_lbl.setVisible(bool(query) and not any_visible)
 
     def _mk_btn(self, label, mode):
+        """Mk btn."""
         btn = QPushButton(label)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -212,10 +219,12 @@ class Sidebar(QWidget):
         return btn
 
     def _on_mode(self, mode):
+        """On mode."""
         self._activate(mode)
         self.mode_changed.emit(mode)
 
     def _activate(self, mode):
+        """Activate."""
         active = (
             f"QPushButton {{ background:{C['accent']}; color:#fff; "
             f"border:none; text-align:left; padding:9px 14px; "
@@ -228,6 +237,7 @@ class Sidebar(QWidget):
 
     @staticmethod
     def _inactive_style():
+        """Inactive style."""
         return (
             f"QPushButton {{ background:transparent; color:{C['text_secondary']}; "
             f"border:none; text-align:left; padding:9px 14px; "
@@ -237,6 +247,7 @@ class Sidebar(QWidget):
 
     @staticmethod
     def _topic_style():
+        """Topic style."""
         return (
             f"QPushButton {{ background:transparent; color:{C['text_secondary']}; "
             f"border:none; text-align:left; padding:7px 12px; "
@@ -246,6 +257,7 @@ class Sidebar(QWidget):
 
     @staticmethod
     def _section_lbl(text):
+        """Section lbl."""
         lbl = QLabel(text)
         lbl.setStyleSheet(
             f"color:{C['text_muted']}; font-size:{F['label']}pt; "
@@ -255,6 +267,7 @@ class Sidebar(QWidget):
 
     @staticmethod
     def _hr():
+        """Hr."""
         f = QFrame()
         f.setFrameShape(QFrame.HLine)
         f.setStyleSheet(f"background:{C['border']}; max-height:1px; margin:4px 0;")
