@@ -4,6 +4,7 @@ Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
 from pathlib import Path
+from typing import Optional, Set, Dict, Any
 
 LESSONS_PATH = Path(__file__).resolve().parent / "lessons.json"
 QUIZ_PATH = Path(__file__).resolve().parent / "quizzes.json"
@@ -55,15 +56,17 @@ TOPIC_ORDER = [
 
 class LessonEngine:
     def __init__(self, path: Path = LESSONS_PATH, quiz_path: Path = QUIZ_PATH,
-                 progress_path: Path = PROGRESS_PATH):
-        self.lessons = json.loads(path.read_text(encoding="utf-8"))
-        self.quizzes = (json.loads(quiz_path.read_text(encoding="utf-8"))
-                         if quiz_path.exists() else {})
-        self._quiz_state = None  # {"topic", "index", "score", "total"}
+                 progress_path: Path = PROGRESS_PATH) -> None:
+        self.lessons: Dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+        self.quizzes: Dict[str, Any] = (
+            json.loads(quiz_path.read_text(encoding="utf-8"))
+            if quiz_path.exists() else {}
+        )
+        self._quiz_state: Optional[Dict[str, Any]] = None  # {"topic","index","score","total"}
         self.progress_path = progress_path
-        self.progress = self._load_progress()
+        self.progress: Set[str] = self._load_progress()
 
-    def _load_progress(self) -> set:
+    def _load_progress(self) -> Set[str]:
         try:
             if self.progress_path.exists():
                 data = json.loads(self.progress_path.read_text(encoding="utf-8"))
@@ -72,7 +75,7 @@ class LessonEngine:
             pass
         return set()
 
-    def _save_progress(self):
+    def _save_progress(self) -> None:
         try:
             self.progress_path.parent.mkdir(parents=True, exist_ok=True)
             self.progress_path.write_text(
@@ -83,12 +86,12 @@ class LessonEngine:
         except OSError:
             pass  # progress is a nice-to-have — never crash the app over it
 
-    def _mark_completed(self, topic: str):
+    def _mark_completed(self, topic: str) -> None:
         if topic not in self.progress:
             self.progress.add(topic)
             self._save_progress()
 
-    def reset_progress(self):
+    def reset_progress(self) -> None:
         """Public: clear all tracked progress (used by the sidebar's
         'Reset Progress' button)."""
         self.progress = set()
@@ -160,6 +163,7 @@ class LessonEngine:
 
     def _present_question(self) -> str:
         state = self._quiz_state
+        assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
         options_text = "\n".join(
             f"  {chr(65 + i)}. {opt}" for i, opt in enumerate(q["options"])
@@ -170,6 +174,7 @@ class LessonEngine:
 
     def _handle_quiz_answer(self, text: str) -> str:
         state = self._quiz_state
+        assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
         letter = text.strip().upper()[:1]
         chosen = ord(letter) - 65 if letter in "ABCD" else -1
@@ -192,7 +197,7 @@ class LessonEngine:
         return f"{feedback}\n{explain}\n\n{self._present_question()}"
 
     @staticmethod
-    def _render(entry) -> str:
+    def _render(entry: Any) -> str:
         if isinstance(entry, dict):
             theory = entry.get("theory", "")
             example = entry.get("example", "")
