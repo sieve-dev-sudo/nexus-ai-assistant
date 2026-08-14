@@ -9,16 +9,17 @@ simple: no runtime re-styling of every already-built widget).
 """
 import json
 from pathlib import Path
+from typing import Dict, Any
 
 SETTINGS_PATH = Path.home() / ".nexus_ai" / "settings.json"
 
-DEFAULTS = {
+DEFAULTS: Dict[str, Any] = {
     "theme": "dark",       # "dark" | "light"
     "font_scale": 1.0,     # 0.8 - 1.5
 }
 
 
-def load_settings(path: Path = SETTINGS_PATH) -> dict:
+def load_settings(path: Path = SETTINGS_PATH) -> Dict[str, Any]:
     try:
         if path.exists():
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -30,7 +31,7 @@ def load_settings(path: Path = SETTINGS_PATH) -> dict:
     return dict(DEFAULTS)
 
 
-def save_settings(settings: dict, path: Path = SETTINGS_PATH) -> bool:
+def save_settings(settings: Dict[str, Any], path: Path = SETTINGS_PATH) -> bool:
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
