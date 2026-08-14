@@ -1,0 +1,1 @@
+"""Lesson mode: Python topic lessons, quizzes, progress tracking, and shared UI theme/settings."""
