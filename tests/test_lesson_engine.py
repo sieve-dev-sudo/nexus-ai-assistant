@@ -73,16 +73,25 @@ def test_quiz_start_presents_first_question(engine):
 
 def test_quiz_correct_answer_increments_score(engine):
     engine.get_response("/quiz basic")
-    result = engine.get_response("B")  # basic's only question: answer index 1 = B
+    result = engine.get_response("B")  # basic Q1: answer index 1 = B
     assert "ត្រឹមត្រូវ" in result
-    assert "ពិន្ទុ: 1/1" in result
+    assert "សំណួរ 2/3" in result  # advances to the next question
 
 
 def test_quiz_wrong_answer_shows_correct_one(engine):
     engine.get_response("/quiz basic")
     result = engine.get_response("Z")  # not a valid option -> counted wrong
     assert "មិនត្រឹមត្រូវ" in result
-    assert "ពិន្ទុ: 0/1" in result
+    assert "សំណួរ 2/3" in result
+
+
+def test_quiz_completes_with_final_score(engine):
+    engine.get_response("/quiz basic")
+    engine.get_response("B")  # Q1 correct
+    engine.get_response("B")  # Q2 correct
+    result = engine.get_response("A")  # Q3 correct
+    assert "Quiz បញ្ចប់" in result
+    assert "3/3" in result
 
 
 def test_quiz_stop_mid_quiz(engine):
@@ -98,7 +107,9 @@ def test_quiz_unknown_topic(engine):
 
 def test_quiz_state_does_not_leak_into_next_lookup(engine):
     engine.get_response("/quiz basic")
-    engine.get_response("B")  # finishes the (single-question) quiz
+    engine.get_response("B")  # Q1
+    engine.get_response("B")  # Q2
+    engine.get_response("A")  # Q3 — quiz finishes
     result = engine.get_response("loop")
     assert "Loop" in result
 
