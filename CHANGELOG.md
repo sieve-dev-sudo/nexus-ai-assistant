@@ -8,6 +8,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ### Added
 - 22 more quiz questions (3 per topic, 33 total, up from 1 per topic)
+- Complete type hints across `FixCode/fix_code_engine.py`,
+  `LessonCodePython/lesson_engine.py`, and `settings_manager.py`
+  (verified with `mypy`, 0 errors)
+- 100% docstring coverage across every module, class, and function
 
 ## [1.1.0] - August 14, 2026
 
