@@ -46,7 +46,7 @@
 ```
 Nexus-AI-Assistant/
 ├── FixCode/
-│   └── fix_code_engine.py        → Logic កែកូដ ( regex + AST )
+│   └── fix_code_engine.py        → Logic កែកូដ ( regex + AST, type-hinted, mypy-clean )
 ├── LessonCodePython/
 │   ├── lesson_engine.py          → Logic ផ្គូផ្គង keyword → topic + Quiz mode
 │   ├── lessons.json              → ខ្លឹមសារមេរៀនទាំង 11
@@ -181,9 +181,9 @@ Nexus-AI-Assistant/
 
 ---
 
-## ✅ Testing
+## ✅ Testing & Code Quality
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប 135 test ។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប **135 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error) និង **docstring coverage 100%** ។
 
 ```bash
 pip install -r requirements-dev.txt
