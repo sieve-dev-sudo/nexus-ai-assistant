@@ -60,6 +60,7 @@ class Sidebar(QWidget):
     clear_chat_requested = pyqtSignal()
     reset_progress_requested = pyqtSignal()
     settings_requested = pyqtSignal()
+    about_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         """Set up this widget's state and build its child widgets."""
@@ -186,6 +187,13 @@ class Sidebar(QWidget):
         settings_btn.setStyleSheet(self._inactive_style())
         settings_btn.clicked.connect(self.settings_requested.emit)
         root.addWidget(settings_btn)
+
+        about_btn = QPushButton("ℹ️  About")
+        about_btn.setCursor(Qt.PointingHandCursor)
+        about_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        about_btn.setStyleSheet(self._inactive_style())
+        about_btn.clicked.connect(self.about_requested.emit)
+        root.addWidget(about_btn)
 
         # Developer credit — small, muted, centered
         credit_lbl = QLabel("Developed by Mr. Siev E")
