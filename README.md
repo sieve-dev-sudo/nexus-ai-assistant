@@ -66,9 +66,11 @@ Nexus-AI-Assistant/
 │   └── python_logo.png           → Python logo (icon source)
 ├── tests/
 │   ├── test_fix_code_engine.py   → Test សម្រាប់ FixCode 19 rule
-│   └── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
+│   ├── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
+│   └── test_settings_manager.py  → Test សម្រាប់ Settings persistence
 ├── conftest.py                   → Path setup សម្រាប់ pytest
 ├── pytest.ini                    → Pytest config
+├── .coveragerc                   → Coverage.py config
 ├── nexus_ai.spec                 → PyInstaller build config
 ├── main.py                       → ចំណុចចូល ( Entry point )
 ├── README.md
@@ -183,11 +185,13 @@ Nexus-AI-Assistant/
 
 ## ✅ Testing & Code Quality
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប **135 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error) និង **docstring coverage 100%** ។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប **141 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 84%** (`pytest-cov`) ។
 
 ```bash
 pip install -r requirements-dev.txt
-pytest
+pytest                                    # run test ធម្មតា
+pytest --cov --cov-report=term-missing    # + coverage report
+pytest --cov --cov-report=html            # + HTML report (htmlcov/index.html)
 ```
 
 ---
