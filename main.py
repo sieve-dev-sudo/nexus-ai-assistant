@@ -11,10 +11,9 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor
 
 from LessonCodePython.theme import C
+from LessonCodePython.version import __version__
 from ui.main_window import MainWindow
 from ui.icons import python_logo_icon
-
-__version__ = "1.1.0"
 
 
 def build_dark_palette() -> QPalette:
