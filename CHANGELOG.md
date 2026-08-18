@@ -15,6 +15,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - Test coverage reporting (`pytest-cov`, `.coveragerc`), plus 6 new tests
   for `settings_manager.py` (was 0% covered, now 100%); overall coverage
   is 84%
+- `CONTRIBUTING.md`: setup, code style, commit convention, PR process
 
 ## [1.1.0] - August 14, 2026
 
