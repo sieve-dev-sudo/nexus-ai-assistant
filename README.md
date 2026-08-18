@@ -230,6 +230,12 @@ Project នេះស្ថិតក្រោម [MIT License](LICENSE) ។ អ�
 
 ---
 
+## 🤝 Contributing
+
+ចង់ជួយ contribute? សូមអាន [CONTRIBUTING.md](CONTRIBUTING.md) សម្រាប់ code style, របៀប run test, និង PR process ។
+
+---
+
 ## 👤 Author
 
 Developed by **Mr. Siev E**
