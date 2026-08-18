@@ -16,6 +16,7 @@ from FixCode.fix_code_engine import FixCodeEngine, INSTRUCTIONS as FIX_WELCOME
 from ui.sidebar import Sidebar
 from ui.chat_panel import ChatPanel
 from ui.settings_dialog import SettingsDialog
+from ui.about_dialog import AboutDialog
 
 LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
@@ -67,6 +68,7 @@ class MainWindow(QMainWindow):
         self._sidebar.clear_chat_requested.connect(self._clear_chat)
         self._sidebar.reset_progress_requested.connect(self._reset_progress)
         self._sidebar.settings_requested.connect(self._open_settings)
+        self._sidebar.about_requested.connect(self._open_about)
 
         self._stack = QStackedWidget()
 
@@ -162,4 +164,9 @@ class MainWindow(QMainWindow):
     def _open_settings(self):
         """Open settings."""
         dlg = SettingsDialog(self)
+        dlg.exec_()
+
+    def _open_about(self) -> None:
+        """Open the About dialog."""
+        dlg = AboutDialog(self)
         dlg.exec_()
