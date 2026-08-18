@@ -12,6 +12,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   `LessonCodePython/lesson_engine.py`, and `settings_manager.py`
   (verified with `mypy`, 0 errors)
 - 100% docstring coverage across every module, class, and function
+- Test coverage reporting (`pytest-cov`, `.coveragerc`), plus 6 new tests
+  for `settings_manager.py` (was 0% covered, now 100%); overall coverage
+  is 84%
 
 ## [1.1.0] - August 14, 2026
 
