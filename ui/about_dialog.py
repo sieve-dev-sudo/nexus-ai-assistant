@@ -27,7 +27,7 @@ class AboutDialog(QDialog):
         # Drop the title-bar "?" context-help button (Windows adds it by
         # default to QDialog; it does nothing useful here).
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedWidth(360)
+        self.setFixedWidth(380)
         self.setStyleSheet(f"background:{C['bg_main']}; color:{C['text_primary']};")
         self._build()
         # Let the dialog's height follow its content's natural size
@@ -39,16 +39,16 @@ class AboutDialog(QDialog):
     def _build(self) -> None:
         """Lay out the icon, title, an info card, and the footer links."""
         root = QVBoxLayout(self)
-        root.setContentsMargins(28, 28, 28, 22)
+        root.setContentsMargins(28, 20, 28, 22)
         root.setSpacing(4)
         root.setAlignment(Qt.AlignTop)
 
         icon_lbl = QLabel()
-        icon_lbl.setPixmap(python_logo_pixmap(64))
+        icon_lbl.setPixmap(python_logo_pixmap(48))
         icon_lbl.setAlignment(Qt.AlignCenter)
         root.addWidget(icon_lbl)
 
-        root.addSpacing(10)
+        root.addSpacing(6)
 
         title = QLabel("Nexus AI")
         title.setAlignment(Qt.AlignCenter)
@@ -65,7 +65,7 @@ class AboutDialog(QDialog):
         )
         root.addWidget(subtitle)
 
-        root.addSpacing(18)
+        root.addSpacing(12)
 
         # ── Info card ──
         card = QFrame()
@@ -75,8 +75,8 @@ class AboutDialog(QDialog):
             f"border:1px solid {C['border']}; border-radius:10px; }}"
         )
         card_lay = QVBoxLayout(card)
-        card_lay.setContentsMargins(18, 16, 18, 16)
-        card_lay.setSpacing(14)
+        card_lay.setContentsMargins(18, 10, 18, 10)
+        card_lay.setSpacing(8)
 
         for label, value in (
             ("Version", __version__),
@@ -89,20 +89,20 @@ class AboutDialog(QDialog):
             k.setStyleSheet(
                 f"color:{C['text_secondary']}; font-size:{F['body']}pt; background:transparent;"
             )
-            k.setMinimumHeight(F['body'] + 12)
+            k.setMinimumHeight(F['body'] + 6)
             v = QLabel(value)
             v.setStyleSheet(
                 f"color:{C['text_primary']}; font-size:{F['body']}pt; "
                 f"font-weight:600; background:transparent;"
             )
-            v.setMinimumHeight(F['body'] + 12)
+            v.setMinimumHeight(F['body'] + 6)
             row.addWidget(k)
             row.addStretch(1)
             row.addWidget(v)
             card_lay.addLayout(row)
 
         root.addWidget(card)
-        root.addSpacing(16)
+        root.addSpacing(10)
 
         # GitHub link — a rich-text hyperlink label reads more cleanly
         # than a button here, and sidesteps emoji/button rendering
@@ -115,7 +115,7 @@ class AboutDialog(QDialog):
         link_lbl.setStyleSheet(f"font-size:{F['body']}pt; background:transparent;")
         root.addWidget(link_lbl)
 
-        root.addStretch(1)
+        root.addSpacing(12)
 
         close_btn = QPushButton("Close")
         close_btn.setCursor(Qt.PointingHandCursor)
