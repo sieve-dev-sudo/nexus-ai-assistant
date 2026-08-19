@@ -2,22 +2,25 @@
 ui/settings_dialog.py
 ──────────────────────
 Simple modal dialog: theme (dark/light) + font size scale.
-Saves to LessonCodePython/settings_manager.py's JSON file. Changes
-apply on next app restart — this dialog says so plainly rather than
-attempting a live re-style of every already-built widget.
+Saves to LessonCodePython/settings_manager.py's JSON file, then calls
+reload_theme() and asks the parent MainWindow to rebuild its UI — the
+change is visible immediately, no app restart needed.
 """
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
     QSlider, QPushButton, QMessageBox,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 
-from LessonCodePython.theme import C, F
+from LessonCodePython.theme import C, F, reload_theme
 from LessonCodePython.settings_manager import load_settings, save_settings
 
 
 class SettingsDialog(QDialog):
-    """Modal dialog for choosing the theme and font size (applies on restart)."""
+    """Modal dialog for choosing the theme and font size — applies live."""
+
+    theme_changed = pyqtSignal()
+
     def __init__(self, parent=None):
         """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
@@ -64,7 +67,7 @@ class SettingsDialog(QDialog):
         font_row.addWidget(self._font_value_lbl)
         root.addLayout(font_row)
 
-        note = QLabel("* ត្រូវ restart App ដើម្បីឲ្យការផ្លាស់ប្តូរដំណើរការ")
+        note = QLabel("✨ ការផ្លាស់ប្តូរនឹងដំណើរការភ្លាមៗ, មិនចាំបាច់ restart App ទេ")
         note.setStyleSheet(f"color:{C['text_secondary']}; font-size:{F['label']}pt;")
         note.setWordWrap(True)
         root.addWidget(note)
@@ -92,10 +95,8 @@ class SettingsDialog(QDialog):
         }
         ok = save_settings(new_settings)
         if ok:
-            QMessageBox.information(
-                self, "Settings",
-                "បានរក្សាទុក! សូម restart App ដើម្បីឲ្យការផ្លាស់ប្តូរដំណើរការ។"
-            )
+            reload_theme()
+            self.theme_changed.emit()
             self.accept()
         else:
-            QMessageBox.warning(self, "Settings", "រក្សាទុកមិនជោគជ័យទេ — សូមសាកល្បងម្តងទៀត។")
+            QMessageBox.warning(self, "Settings", "រក្សាទុកមិនជោគជ័យទេ, សូមសាកល្បងម្តងទៀត។")

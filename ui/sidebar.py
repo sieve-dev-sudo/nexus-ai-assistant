@@ -226,6 +226,12 @@ class Sidebar(QWidget):
         btn.clicked.connect(lambda: self._on_mode(mode))
         return btn
 
+    def set_active_mode(self, mode: str) -> None:
+        """Public: sync the sidebar's highlighted mode button (used by
+        MainWindow after a UI rebuild, to restore the mode the user was
+        in before the rebuild)."""
+        self._activate(mode)
+
     def _on_mode(self, mode):
         """On mode."""
         self._activate(mode)
