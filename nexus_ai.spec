@@ -74,7 +74,7 @@ if sys.platform == "darwin":
         info_plist={
             'CFBundleName': 'Nexus AI',
             'CFBundleDisplayName': 'Nexus AI — Python Assistant',
-            'CFBundleShortVersionString': '1.1.0',
+            'CFBundleShortVersionString': '1.2.0',
             'NSHighResolutionCapable': True,
         },
     )
