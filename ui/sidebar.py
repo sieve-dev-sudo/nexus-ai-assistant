@@ -188,7 +188,7 @@ class Sidebar(QWidget):
         settings_btn.clicked.connect(self.settings_requested.emit)
         root.addWidget(settings_btn)
 
-        about_btn = QPushButton("ℹ️  About")
+        about_btn = QPushButton(" ℹ️  About")
         about_btn.setCursor(Qt.PointingHandCursor)
         about_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         about_btn.setStyleSheet(self._inactive_style())

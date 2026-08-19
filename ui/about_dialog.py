@@ -1,24 +1,20 @@
 """
 ui/about_dialog.py
 ────────────────────
-Simple modal "About" dialog: app icon, version, author, license,
-and a clickable link to the GitHub repository.
+Simple modal "About" dialog: app icon, version, author, and license.
 """
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
 )
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import Qt
 
 from LessonCodePython.theme import C, F
 from LessonCodePython.version import __version__
 from ui.icons import python_logo_pixmap
 
-GITHUB_URL = "https://github.com/sieve-dev-sudo/nexus-ai-assistant"
-
 
 class AboutDialog(QDialog):
-    """Read-only dialog showing app version, author, license, and repo link."""
+    """Read-only dialog showing app version, author, and license."""
 
     def __init__(self, parent=None):
         """Set up this widget's state and build its child widgets."""
@@ -102,20 +98,7 @@ class AboutDialog(QDialog):
             card_lay.addLayout(row)
 
         root.addWidget(card)
-        root.addSpacing(10)
-
-        # GitHub link — a rich-text hyperlink label reads more cleanly
-        # than a button here, and sidesteps emoji/button rendering
-        # inconsistencies across platforms.
-        link_lbl = QLabel(f'<a href="{GITHUB_URL}" style="color:{C["accent"]}; '
-                           f'text-decoration:none;">🔗 GitHub Repository</a>')
-        link_lbl.setAlignment(Qt.AlignCenter)
-        link_lbl.setOpenExternalLinks(True)
-        link_lbl.setCursor(Qt.PointingHandCursor)
-        link_lbl.setStyleSheet(f"font-size:{F['body']}pt; background:transparent;")
-        root.addWidget(link_lbl)
-
-        root.addSpacing(12)
+        root.addSpacing(16)
 
         close_btn = QPushButton("Close")
         close_btn.setCursor(Qt.PointingHandCursor)
@@ -127,7 +110,3 @@ class AboutDialog(QDialog):
         )
         close_btn.clicked.connect(self.accept)
         root.addWidget(close_btn)
-
-    def _open_github(self) -> None:
-        """Open the project's GitHub repository in the default browser."""
-        QDesktopServices.openUrl(QUrl(GITHUB_URL))
