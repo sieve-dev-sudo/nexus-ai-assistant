@@ -6,6 +6,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ## [Unreleased]
 
+## [1.2.0] - August 20, 2026
+
 ### Added
 - 22 more quiz questions (3 per topic, 33 total, up from 1 per topic)
 - Complete type hints across `FixCode/fix_code_engine.py`,
@@ -14,7 +16,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - 100% docstring coverage across every module, class, and function
 - Test coverage reporting (`pytest-cov`, `.coveragerc`), plus 6 new tests
   for `settings_manager.py` (was 0% covered, now 100%); overall coverage
-  is 84%
+  is 82%
 - `CONTRIBUTING.md`: setup, code style, commit convention, PR process
 - About dialog (Version, Author, License)
 - Live theme switching: Dark/Light and font size now apply immediately
