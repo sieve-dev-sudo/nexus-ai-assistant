@@ -16,6 +16,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   for `settings_manager.py` (was 0% covered, now 100%); overall coverage
   is 84%
 - `CONTRIBUTING.md`: setup, code style, commit convention, PR process
+- About dialog (Version, Author, License, GitHub link)
+- Live theme switching: Dark/Light and font size now apply immediately
+  on Save, no app restart needed
+- Python syntax highlighting in code blocks (keywords, strings,
+  comments, numbers); "output" blocks stay plain text
+- Undo for Clear Chat: a 10-second "Chat cleared — Undo" bar restores
+  the conversation if clicked
+
+### Fixed
+- Settings/About dialogs: mismatched dialog height silently collapsed
+  info rows to 0px in Qt's layout engine
+- `QFrame { ... }` stylesheet selector was leaking into child QLabels
+  (QLabel is a QFrame subclass), making the About dialog's info card
+  render empty
+- Clear Chat: `deleteLater()` doesn't hide a widget immediately, so a
+  just-cleared bubble could still flash on screen; now hidden right away
+- Undo Clear Chat: showing the undo banner was accidentally discarding
+  the very snapshot it needed to restore
 
 ## [1.1.0] - August 14, 2026
 
