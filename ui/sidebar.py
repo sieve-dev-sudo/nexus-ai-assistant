@@ -57,6 +57,7 @@ class Sidebar(QWidget):
     mode_changed = pyqtSignal(str)
     topic_selected = pyqtSignal(str)
     export_requested = pyqtSignal()
+    export_report_requested = pyqtSignal()
     clear_chat_requested = pyqtSignal()
     reset_progress_requested = pyqtSignal()
     settings_requested = pyqtSignal()
@@ -166,6 +167,13 @@ class Sidebar(QWidget):
         export_btn.setStyleSheet(self._inactive_style())
         export_btn.clicked.connect(self.export_requested.emit)
         root.addWidget(export_btn)
+
+        export_report_btn = QPushButton("📑  Export Report")
+        export_report_btn.setCursor(Qt.PointingHandCursor)
+        export_report_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        export_report_btn.setStyleSheet(self._inactive_style())
+        export_report_btn.clicked.connect(self.export_report_requested.emit)
+        root.addWidget(export_report_btn)
 
         clear_btn = QPushButton("🗑️  Clear Chat")
         clear_btn.setCursor(Qt.PointingHandCursor)
