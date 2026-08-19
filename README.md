@@ -8,7 +8,7 @@
 ![Topics](https://img.shields.io/badge/TOPICS-11-6f42c1?style=for-the-badge)
 ![Offline](https://img.shields.io/badge/Offline-Yes-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.1.0-informational?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.2.0-informational?style=for-the-badge)
 
 ```
 ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗     █████╗ ██╗    ██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗
@@ -32,10 +32,11 @@
 - 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
 - 🎨 **Syntax Highlighting** : ពណ៌ keyword/string/comment/number ក្នុង code block ដូច VS Code
 - 💾 **Export Chat** : Save conversation ជា file `.md`
+- 📑 **Export Report** : Export progress + quiz history ជា file `.csv`
 - 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន Undo 10 វិនាទី)
 - 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
 - ⚙️ **Settings** : ប្តូរ Theme (Dark/Light) និង Font size
-- ℹ️ **About Dialog** : មើល Version, Author, License, GitHub link
+- ℹ️ **About Dialog** : មើល Version, Author, License
 - 🔍 **Search Lessons** : ស្វែងរក topic ដោយផ្ទាល់ពី Sidebar (តាមឈ្មោះ ឬ keyword ខាងក្នុង)
 - ⌨️ **Keyboard Shortcuts** : `Ctrl+K`, `Esc`, `Ctrl+L`, `Ctrl+,`, `Ctrl+F`
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
@@ -67,7 +68,9 @@ Nexus-AI-Assistant/
 │   ├── about_dialog.py           → About dialog (Version/Author/License)
 │   └── avatars.py                → រូបតំណាង
 ├── assets/
-│   └── python_logo.png           → Python logo (icon source)
+│   ├── python_logo.png           → Python logo (icon source)
+│   ├── python_logo.ico           → Icon សម្រាប់ Windows build
+│   └── python_logo.icns          → Icon សម្រាប់ macOS build
 ├── tests/
 │   ├── test_fix_code_engine.py   → Test សម្រាប់ FixCode 19 rule
 │   ├── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
@@ -150,6 +153,7 @@ Nexus-AI-Assistant/
 - **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ ចុចដើម្បីចម្លងកូដទាំងមូល
 - **🎨 Syntax Highlighting** : code block ក្នុង chat បង្ហាញពណ៌ keyword/string/comment/number ស្វ័យប្រវត្តិ (block ដែលដាក់ tag `output` នៅតែពណ៌ស ធម្មតា)
 - **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
+- **📑 Export Report** : ចុច button "Export Report" ដើម្បី save progress checklist + quiz history ទាំងអស់ជា file `.csv`
 - **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog + **Undo 10 វិនាទី** បើក្រោយពីលុបចោល ចង់ស្តារត្រឡប់វិញ)
 - **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
 
@@ -161,13 +165,13 @@ Nexus-AI-Assistant/
 - **Theme** : Dark ឬ Light
 - **Font Size** : 80% - 150%
 
-*ត្រូវ restart App ដើម្បីឲ្យការផ្លាស់ប្តូរដំណើរការ។*
+*ការផ្លាស់ប្តូរដំណើរការភ្លាមៗ, មិនចាំបាច់ restart App ទេ។*
 
 ---
 
 ## ℹ️ About
 
-ចុច "ℹ️ About" ក្នុង Sidebar ដើម្បីមើល Version, Author, License, និង GitHub link របស់ project ។
+ចុច "ℹ️ About" ក្នុង Sidebar ដើម្បីមើល Version, Author, និង License របស់ project ។
 
 ---
 
@@ -197,7 +201,7 @@ Nexus-AI-Assistant/
 
 ## ✅ Testing & Code Quality
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **141 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 84%** (`pytest-cov`) ។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **146 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 82%** (`pytest-cov`) ។
 
 ```bash
 pip install -r requirements-dev.txt
