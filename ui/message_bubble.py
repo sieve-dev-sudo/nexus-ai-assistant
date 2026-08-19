@@ -3,15 +3,72 @@ ui/message_bubble.py
 """
 
 import re
+import keyword as _keyword_module
 from PyQt5.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QSizePolicy, QTextEdit, QPushButton
 )
 from PyQt5.QtCore import Qt, QSize, QTimer
-from PyQt5.QtGui import QFont, QFontMetrics, QGuiApplication
+from PyQt5.QtGui import (
+    QFont, QFontMetrics, QGuiApplication,
+    QSyntaxHighlighter, QTextCharFormat, QColor,
+)
 
 from LessonCodePython.theme import C, F
 from ui.avatars import AvatarLabel, TypingDots
+
+
+class PythonSyntaxHighlighter(QSyntaxHighlighter):
+    """Lightweight single-pass Python syntax highlighter for CodeBlock.
+
+    Uses fixed, VS-Code-Dark-inspired colors (independent of the app's
+    Dark/Light theme setting) since CodeBlock itself always keeps a
+    fixed dark "code editor" background regardless of theme — see the
+    note in CodeBlock.__init__.
+
+    Known limitation: matching is done one line at a time, so a
+    triple-quoted string that spans multiple lines won't be colored
+    as a string past its first line. Good enough for the short
+    snippets Fix Code / Lesson mode actually produces.
+    """
+
+    _BUILTINS = (
+        "print len range int float str bool list tuple set dict type "
+        "isinstance open input enumerate zip map filter sorted sum min "
+        "max abs round self super None True False"
+    ).split()
+
+    def __init__(self, document):
+        """Build the fixed set of (regex, format) highlighting rules."""
+        super().__init__(document)
+
+        def fmt(color: str, bold: bool = False) -> QTextCharFormat:
+            f = QTextCharFormat()
+            f.setForeground(QColor(color))
+            if bold:
+                f.setFontWeight(QFont.Bold)
+            return f
+
+        kw_pattern = r'\b(' + '|'.join(_keyword_module.kwlist) + r')\b'
+        builtin_pattern = r'\b(' + '|'.join(self._BUILTINS) + r')\b'
+
+        # Order matters: later rules paint OVER earlier ones on overlap,
+        # so strings win over keyword-looking text inside them, and
+        # comments win over everything (applied last).
+        self._rules = [
+            (re.compile(kw_pattern), fmt("#569cd6", bold=True)),
+            (re.compile(builtin_pattern), fmt("#4ec9b0")),
+            (re.compile(r'\b\d+\.?\d*\b'), fmt("#b5cea8")),
+            (re.compile(r"'[^'\\]*(?:\\.[^'\\]*)*'"), fmt("#ce9178")),
+            (re.compile(r'"[^"\\]*(?:\\.[^"\\]*)*"'), fmt("#ce9178")),
+            (re.compile(r'#.*'), fmt("#6a9955")),
+        ]
+
+    def highlightBlock(self, text: str) -> None:
+        """Apply every rule to one line of the document, in priority order."""
+        for pattern, char_format in self._rules:
+            for m in pattern.finditer(text):
+                self.setFormat(m.start(), m.end() - m.start(), char_format)
 
 
 class CodeBlock(QTextEdit):
@@ -24,7 +81,7 @@ class CodeBlock(QTextEdit):
     H_LINE_EXTRA = 4    # leading between lines
     V_PAD = 32   # top+bottom padding inside the box
 
-    def __init__(self, code: str, parent=None):
+    def __init__(self, code: str, parent=None, highlight: bool = True):
         """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
         self.setReadOnly(True)
@@ -38,6 +95,11 @@ class CodeBlock(QTextEdit):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.document().setDocumentMargin(4)
+
+        # Python code gets syntax highlighting; plain "output" blocks
+        # (program output text, not code) are left as plain white text.
+        if highlight:
+            self._highlighter = PythonSyntaxHighlighter(self.document())
 
         # Code blocks always keep a fixed dark "code editor" look —
         # deliberately NOT tied to C['text_primary'] which flips to a
@@ -154,31 +216,47 @@ class MessageBubble(QWidget):
             outer.addWidget(content)
             outer.addStretch()
 
+    _CODE_FENCE_RE = re.compile(r"```(python|output)?\n?(.*?)```", re.DOTALL)
+
     def _render(self, text: str, layout: QVBoxLayout):
-        """Render."""
-        parts = re.split(r"```(?:python|output|)?\n?(.*?)```",
-                         text, flags=re.DOTALL)
-        for idx, part in enumerate(parts):
-            # remove BOM / zero-width characters that may cause a leading blank line
-            part = re.sub(r'^[\uFEFF\u200B]+', '', part)
-            part = part.strip()
-            if not part:
-                continue
-            if idx % 2 == 1:
-                layout.addWidget(CodeBlock(part))
-            else:
-                lbl = QLabel(part)
-                lbl.setWordWrap(True)
-                lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                bg = C["bg_user_bubble"] if self.role == "user" else C["bg_ai_bubble"]
-                fg = "#ffffff" if self.role == "user" else C["text_primary"]
-                lbl.setStyleSheet(
-                    f"background:{bg}; color:{fg}; "
-                    f"border-radius:12px; padding:12px 16px; "
-                    f"border:1px solid {C['border']}; "
-                    f"font-size:{F['body']}pt; line-height:1.65;"
-                )
-                layout.addWidget(lbl)
+        """Split text on ```fenced code blocks```, rendering each as a
+        CodeBlock (syntax-highlighted unless tagged "output") and every
+        other segment as a plain text bubble."""
+        pos = 0
+        for m in self._CODE_FENCE_RE.finditer(text):
+            plain = self._clean(text[pos:m.start()])
+            if plain:
+                layout.addWidget(self._make_label(plain))
+
+            lang = m.group(1)
+            code = self._clean(m.group(2))
+            if code:
+                layout.addWidget(CodeBlock(code, highlight=(lang != "output")))
+            pos = m.end()
+
+        tail = self._clean(text[pos:])
+        if tail:
+            layout.addWidget(self._make_label(tail))
+
+    @staticmethod
+    def _clean(s: str) -> str:
+        """Strip a leading BOM/zero-width char (common copy-paste artifact) and surrounding whitespace."""
+        return re.sub(r'^[\uFEFF\u200B]+', '', s).strip()
+
+    def _make_label(self, part: str) -> QLabel:
+        """Build one plain-text message bubble label."""
+        lbl = QLabel(part)
+        lbl.setWordWrap(True)
+        lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        bg = C["bg_user_bubble"] if self.role == "user" else C["bg_ai_bubble"]
+        fg = "#ffffff" if self.role == "user" else C["text_primary"]
+        lbl.setStyleSheet(
+            f"background:{bg}; color:{fg}; "
+            f"border-radius:12px; padding:12px 16px; "
+            f"border:1px solid {C['border']}; "
+            f"font-size:{F['body']}pt; line-height:1.65;"
+        )
+        return lbl
 
     def stop_typing(self):
         """Stop typing."""
