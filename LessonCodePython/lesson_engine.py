@@ -3,12 +3,15 @@ LessonCodePython/lesson_engine.py — 11 topics + Quiz mode
 Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
+import csv
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Set, Dict, Any
+from typing import Optional, Set, List, Dict, Any
 
 LESSONS_PATH = Path(__file__).resolve().parent / "lessons.json"
 QUIZ_PATH = Path(__file__).resolve().parent / "quizzes.json"
 PROGRESS_PATH = Path.home() / ".nexus_ai" / "progress.json"
+QUIZ_HISTORY_PATH = Path.home() / ".nexus_ai" / "quiz_history.json"
 
 # ── ordered list so specific topics match BEFORE generic ones ─────────
 # Each entry: (tuple_of_keywords, topic_key)
@@ -57,7 +60,8 @@ TOPIC_ORDER = [
 class LessonEngine:
     """Public entry point for Lesson mode: routes chat messages to a topic lesson, a quiz question/answer, or a progress report."""
     def __init__(self, path: Path = LESSONS_PATH, quiz_path: Path = QUIZ_PATH,
-                 progress_path: Path = PROGRESS_PATH) -> None:
+                 progress_path: Path = PROGRESS_PATH,
+                 quiz_history_path: Path = QUIZ_HISTORY_PATH) -> None:
         """Load lesson/quiz content and any previously saved progress from disk."""
         self.lessons: Dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
         self.quizzes: Dict[str, Any] = (
@@ -67,6 +71,8 @@ class LessonEngine:
         self._quiz_state: Optional[Dict[str, Any]] = None  # {"topic","index","score","total"}
         self.progress_path = progress_path
         self.progress: Set[str] = self._load_progress()
+        self.quiz_history_path = quiz_history_path
+        self.quiz_history: List[Dict[str, Any]] = self._load_quiz_history()
 
     def _load_progress(self) -> Set[str]:
         """Read the saved set of completed topics from disk, or start empty if there's no file yet."""
@@ -101,6 +107,62 @@ class LessonEngine:
         'Reset Progress' button)."""
         self.progress = set()
         self._save_progress()
+
+    def _load_quiz_history(self) -> List[Dict[str, Any]]:
+        """Read past completed-quiz records from disk, or start empty."""
+        try:
+            if self.quiz_history_path.exists():
+                data = json.loads(self.quiz_history_path.read_text(encoding="utf-8"))
+                return list(data.get("attempts", []))
+        except (OSError, ValueError):
+            pass
+        return []
+
+    def _save_quiz_history(self) -> None:
+        """Persist quiz_history to disk (best-effort — never raises)."""
+        try:
+            self.quiz_history_path.parent.mkdir(parents=True, exist_ok=True)
+            self.quiz_history_path.write_text(
+                json.dumps({"attempts": self.quiz_history}, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+
+    def _record_quiz_attempt(self, topic: str, score: int, total: int) -> None:
+        """Append one completed-quiz result and persist it."""
+        self.quiz_history.append({
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "topic": topic,
+            "score": score,
+            "total": total,
+        })
+        self._save_quiz_history()
+
+    def export_report(self, filepath: str) -> bool:
+        """Write a CSV report combining the progress checklist and the
+        full quiz-attempt history. Returns True on success."""
+        try:
+            with open(filepath, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["=== Progress ==="])
+                writer.writerow(["Topic", "Completed"])
+                for key in TOPIC_ORDER:
+                    writer.writerow([key, "Yes" if key in self.progress else "No"])
+
+                writer.writerow([])
+                writer.writerow(["=== Quiz History ==="])
+                writer.writerow(["Timestamp", "Topic", "Score", "Total", "Percent"])
+                for attempt in self.quiz_history:
+                    total = attempt["total"]
+                    pct = round(attempt["score"] / total * 100) if total else 0
+                    writer.writerow([
+                        attempt["timestamp"], attempt["topic"],
+                        attempt["score"], total, f"{pct}%",
+                    ])
+            return True
+        except OSError:
+            return False
 
     def _show_progress(self) -> str:
         """Build the progress checklist text (✅/⬜ per topic, plus a completion percentage)."""
@@ -201,6 +263,7 @@ class LessonEngine:
 
         if state["index"] >= state["total"]:
             score, total = state["score"], state["total"]
+            self._record_quiz_attempt(state["topic"], score, total)
             self._quiz_state = None
             return f"{feedback}\n{explain}\n\n🎉 Quiz បញ្ចប់! ពិន្ទុ: {score}/{total}"
 
