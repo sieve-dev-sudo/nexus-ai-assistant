@@ -2,12 +2,20 @@
 LessonCodePython/theme.py
 ──────────────────────────
 Central colour palette + font sizes for the whole application.
-Reads the saved theme/font-scale preference once at import time —
-changing settings takes effect on the next app restart.
-"""
-from LessonCodePython.settings_manager import load_settings
+`C` and `F` are fixed dict objects (not reassigned) so that
+`reload_theme()` can update their *contents* in place — every module
+that did `from LessonCodePython.theme import C, F` already holds a
+reference to these same dict objects, so mutating them is visible
+everywhere immediately (no re-import needed).
 
-_settings = load_settings()
+Note: this only affects styles computed *after* the reload (widgets
+built afterward, or ones that explicitly re-apply their stylesheet).
+Already-built widgets keep whatever stylesheet string was baked in at
+construction time — see MainWindow._rebuild_ui(), which is what
+actually makes a theme change visible without an app restart.
+"""
+from typing import Dict
+from LessonCodePython.settings_manager import load_settings
 
 DARK_COLORS = {
     "bg_main":        "#0a0a0e",
@@ -59,18 +67,62 @@ LIGHT_COLORS = {
     "brand_title":    "#1d4ed8",  # blue reads much better than yellow on light bg
 }
 
-COLORS = LIGHT_COLORS if _settings.get("theme") == "light" else DARK_COLORS
+# Fixed dict objects — never reassigned, only mutated (see reload_theme).
+C: Dict[str, str] = {}
+F: Dict[str, int] = {}
 
-_scale = _settings.get("font_scale", 1.0)
-FONTS = {
-    "title":   round(16 * _scale),
-    "body":    round(15 * _scale),
-    "code":    round(14 * _scale),
-    "sidebar": round(14 * _scale),
-    "topic":   round(13 * _scale),
-    "label":   round(11 * _scale),
-    "input":   round(15 * _scale),
-}
 
-C = COLORS
-F = FONTS
+def _colors_for(theme_name: str) -> Dict[str, str]:
+    return LIGHT_COLORS if theme_name == "light" else DARK_COLORS
+
+
+def _fonts_for(scale: float) -> Dict[str, int]:
+    return {
+        "title":   round(16 * scale),
+        "body":    round(15 * scale),
+        "code":    round(14 * scale),
+        "sidebar": round(14 * scale),
+        "topic":   round(13 * scale),
+        "label":   round(11 * scale),
+        "input":   round(15 * scale),
+    }
+
+
+def reload_theme() -> None:
+    """Re-read settings.json and refresh C/F in place. Called on app
+    startup and again whenever the user saves new Settings — pairs
+    with MainWindow._rebuild_ui() to make the change visible without
+    restarting the app."""
+    settings = load_settings()
+    C.clear()
+    C.update(_colors_for(settings.get("theme", "dark")))
+    F.clear()
+    F.update(_fonts_for(settings.get("font_scale", 1.0)))
+
+
+reload_theme()
+
+# Backwards-compatible aliases some modules may still reference.
+COLORS = C
+FONTS = F
+
+
+def build_palette():
+    """Build a QPalette from the *current* C dict — used both at app
+    startup and again after a live theme switch (see
+    MainWindow._rebuild_ui). Imports PyQt5 lazily so this module stays
+    importable in contexts (like plain pytest) that don't need Qt."""
+    from PyQt5.QtGui import QPalette, QColor
+
+    pal = QPalette()
+    pal.setColor(QPalette.Window,          QColor(C["bg_main"]))
+    pal.setColor(QPalette.WindowText,      QColor(C["text_primary"]))
+    pal.setColor(QPalette.Base,            QColor(C["bg_input"]))
+    pal.setColor(QPalette.AlternateBase,   QColor(C["bg_card"]))
+    pal.setColor(QPalette.Text,            QColor(C["text_primary"]))
+    pal.setColor(QPalette.ButtonText,      QColor(C["text_primary"]))
+    pal.setColor(QPalette.Button,          QColor(C["bg_card"]))
+    pal.setColor(QPalette.Highlight,       QColor(C["accent"]))
+    pal.setColor(QPalette.HighlightedText, QColor("#ffffff"))
+    pal.setColor(QPalette.PlaceholderText, QColor(C["text_muted"]))
+    return pal
