@@ -8,10 +8,12 @@ Engine runs in a background QThread so the UI never freezes.
 
 from datetime import datetime
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QLabel, QPushButton,
+)
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer
 
-from LessonCodePython.theme import C
+from LessonCodePython.theme import C, F
 from ui.message_bubble import MessageBubble
 from ui.input_bar import InputBar
 
@@ -42,6 +44,9 @@ class ChatPanel(QWidget):
         self._worker = None
         self._history = []  # list of (role, text) — for chat export
         self._welcome_text = welcome_text
+        self._undo_snapshot = None   # history saved by clear_chat(), for Undo
+        self._undo_banner = None
+        self._undo_timer = None
         self._build()
         if welcome_text:
             self._add_ai_bubble(welcome_text)
@@ -114,15 +119,94 @@ class ChatPanel(QWidget):
     def clear_chat(self):
         """Remove every message bubble and reset history, then show the
         welcome message again (if this panel has one) — same state as
-        a fresh app launch."""
+        a fresh app launch. Keeps a snapshot for 10 seconds so the user
+        can Undo before it's gone for good."""
+        self._undo_snapshot = list(self._history)  # copy, for potential undo
+
         while self._msg_lay.count() > 1:  # keep the trailing stretch
             item = self._msg_lay.takeAt(0)
             w = item.widget()
             if w:
+                w.hide()
                 w.deleteLater()
         self._history = []
         if self._welcome_text:
             self._add_ai_bubble(self._welcome_text)
+
+        self._show_undo_banner()
+
+    def _show_undo_banner(self):
+        """Show a dismissible "Chat cleared — Undo" bar for 10 seconds."""
+        self._remove_banner_widgets()  # clear any stale banner UI only —
+        # NOT _dismiss_undo_banner(), which would also wipe the snapshot
+        # we just captured in clear_chat().
+
+        banner = QWidget()
+        banner.setStyleSheet(f"background:{C['bg_card']}; border-bottom:1px solid {C['border']};")
+        row = QHBoxLayout(banner)
+        row.setContentsMargins(16, 8, 16, 8)
+
+        label = QLabel("Chat cleared")
+        label.setStyleSheet(f"color:{C['text_secondary']}; font-size:{F['label']}pt;")
+        row.addWidget(label)
+        row.addStretch(1)
+
+        undo_btn = QPushButton("Undo")
+        undo_btn.setCursor(Qt.PointingHandCursor)
+        undo_btn.setStyleSheet(
+            f"QPushButton {{ background:transparent; color:{C['accent']}; "
+            f"border:none; font-weight:600; font-size:{F['label']}pt; }}"
+            f"QPushButton:hover {{ text-decoration:underline; }}"
+        )
+        undo_btn.clicked.connect(self._undo_clear)
+        row.addWidget(undo_btn)
+
+        self.layout().insertWidget(0, banner)
+        self._undo_banner = banner
+
+        self._undo_timer = QTimer(self)
+        self._undo_timer.setSingleShot(True)
+        self._undo_timer.timeout.connect(self._dismiss_undo_banner)
+        self._undo_timer.start(10_000)
+
+    def _remove_banner_widgets(self):
+        """Tear down the banner + timer only — never touches the undo
+        snapshot itself (see _show_undo_banner / _dismiss_undo_banner)."""
+        if self._undo_timer is not None:
+            self._undo_timer.stop()
+            self._undo_timer = None
+        if self._undo_banner is not None:
+            self._undo_banner.deleteLater()
+            self._undo_banner = None
+
+    def _dismiss_undo_banner(self):
+        """Called when the 10s window truly expires with no Undo click:
+        hide the banner AND permanently discard the snapshot."""
+        self._remove_banner_widgets()
+        self._undo_snapshot = None
+
+    def _undo_clear(self):
+        """Restore the chat exactly as it was before the last Clear Chat."""
+        if self._undo_snapshot is None:
+            return
+        snapshot = self._undo_snapshot
+
+        while self._msg_lay.count() > 1:
+            item = self._msg_lay.takeAt(0)
+            w = item.widget()
+            if w:
+                w.hide()
+                w.deleteLater()
+        self._history = []
+
+        for role, text in snapshot:
+            if role == "user":
+                self._add_user_bubble(text)
+            else:
+                self._add_ai_bubble(text)
+
+        self._remove_banner_widgets()
+        self._undo_snapshot = None
 
     # ── private ──────────────────────────────────────────────────────────
     def _on_send(self, text: str):
