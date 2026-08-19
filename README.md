@@ -30,10 +30,12 @@
 - 📊 **Progress Tracking** : វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (local file, គ្មាន account)
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
 - 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
+- 🎨 **Syntax Highlighting** : ពណ៌ keyword/string/comment/number ក្នុង code block ដូច VS Code
 - 💾 **Export Chat** : Save conversation ជា file `.md`
-- 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន confirmation)
+- 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន Undo 10 វិនាទី)
 - 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
 - ⚙️ **Settings** : ប្តូរ Theme (Dark/Light) និង Font size
+- ℹ️ **About Dialog** : មើល Version, Author, License, GitHub link
 - 🔍 **Search Lessons** : ស្វែងរក topic ដោយផ្ទាល់ពី Sidebar (តាមឈ្មោះ ឬ keyword ខាងក្នុង)
 - ⌨️ **Keyboard Shortcuts** : `Ctrl+K`, `Esc`, `Ctrl+L`, `Ctrl+,`, `Ctrl+F`
 - 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
@@ -52,6 +54,7 @@ Nexus-AI-Assistant/
 │   ├── lessons.json              → ខ្លឹមសារមេរៀនទាំង 11
 │   ├── quizzes.json              → សំណួរ Quiz តាម topic
 │   ├── settings_manager.py       → Theme/Font settings persistence
+│   ├── version.py                → App version (single source of truth)
 │   └── theme.py                  → ពណ៌ (Dark/Light) និង Font កំណត់រួម
 ├── ui/
 │   ├── main_window.py            → បង្អួចមេ + Keyboard shortcuts
@@ -61,6 +64,7 @@ Nexus-AI-Assistant/
 │   ├── input_bar.py              → ប្រអប់វាយអក្សរ
 │   ├── icons.py                  → Python logo icon loader
 │   ├── settings_dialog.py        → Settings dialog (Theme/Font)
+│   ├── about_dialog.py           → About dialog (Version/Author/License)
 │   └── avatars.py                → រូបតំណាង
 ├── assets/
 │   └── python_logo.png           → Python logo (icon source)
@@ -75,6 +79,7 @@ Nexus-AI-Assistant/
 ├── main.py                       → ចំណុចចូល ( Entry point )
 ├── README.md
 ├── CHANGELOG.md                  → History នៃការផ្លាស់ប្តូរតាម version
+├── CONTRIBUTING.md                → Guide សម្រាប់អ្នកចង់ contribute
 ├── LICENSE                       → MIT License
 ├── requirements.txt              → Dependencies
 └── requirements-dev.txt          → Dependencies សម្រាប់ testing
@@ -108,7 +113,7 @@ Nexus-AI-Assistant/
 
 **របៀបប្រើ:** វាយឈ្មោះ topic ដោយផ្ទាល់ ឬពាក្យគន្លឹះពាក់ព័ន្ធ ក្នុង chat box, ឬវាយ `/start` ដើម្បីមើល menu ពេញ។
 
-📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង — **3 សំណួរ multiple-choice/topic**, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
+📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង៖ **3 សំណួរ multiple-choice/topic**, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
 
 📊 **Progress:** វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (កត់ត្រាទុកស្វ័យប្រវត្តិពេលមើលមេរៀន)។
 
@@ -131,10 +136,10 @@ Nexus-AI-Assistant/
 13. **Python 2 `raw_input()`** → `input()`
 14. **`++` / `--`** → `+= 1` / `-= 1`
 15. **f-string ភ្លេច `f`** : `"Hi {name}"` → `f"Hi {name}"`
-16. **Mutable default argument** : `def f(x=[]):` — ព្រមាន
-17. **Undefined name** : ប្រើ variable/function ដែលមិនឃើញកន្លែង define — ព្រមាន
-18. **Off-by-one loop** : `range(len(x)+1)`, `i <= len(x)` — ព្រមាន
-19. **`is` vs `==`** : ប្រៀបធៀប literal ដោយ `is` (`x is 5`) — ព្រមាន
+16. **Mutable default argument** : `def f(x=[]):` ព្រមាន
+17. **Undefined name** : ប្រើ variable/function ដែលមិនឃើញកន្លែង define ព្រមាន
+18. **Off-by-one loop** : `range(len(x)+1)`, `i <= len(x)` ព្រមាន
+19. **`is` vs `==`** : ប្រៀបធៀប literal ដោយ `is` (`x is 5`) ព្រមាន
 
 **របៀបប្រើ:** Paste កូដ Python ចូល input bar រួចចុច Send ( Shift+Enter = ចុះបន្ទាត់ថ្មី ) ។
 
@@ -142,9 +147,10 @@ Nexus-AI-Assistant/
 
 ## 💾 Chat Tools
 
-- **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ — ចុចដើម្បីចម្លងកូដទាំងមូល
+- **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ ចុចដើម្បីចម្លងកូដទាំងមូល
+- **🎨 Syntax Highlighting** : code block ក្នុង chat បង្ហាញពណ៌ keyword/string/comment/number ស្វ័យប្រវត្តិ (block ដែលដាក់ tag `output` នៅតែពណ៌ស ធម្មតា)
 - **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
-- **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog ការពារចុចខុស)
+- **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog + **Undo 10 វិនាទី** បើក្រោយពីលុបចោល ចង់ស្តារត្រឡប់វិញ)
 - **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
 
 ---
@@ -156,6 +162,12 @@ Nexus-AI-Assistant/
 - **Font Size** : 80% - 150%
 
 *ត្រូវ restart App ដើម្បីឲ្យការផ្លាស់ប្តូរដំណើរការ។*
+
+---
+
+## ℹ️ About
+
+ចុច "ℹ️ About" ក្នុង Sidebar ដើម្បីមើល Version, Author, License, និង GitHub link របស់ project ។
 
 ---
 
@@ -185,7 +197,7 @@ Nexus-AI-Assistant/
 
 ## ✅ Testing & Code Quality
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress) — សរុប **141 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 84%** (`pytest-cov`) ។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **141 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 84%** (`pytest-cov`) ។
 
 ```bash
 pip install -r requirements-dev.txt
@@ -198,14 +210,14 @@ pytest --cov --cov-report=html            # + HTML report (htmlcov/index.html)
 
 ## 📦 Build ជា .exe (Standalone)
 
-មិនចាំបាច់ឲ្យ user ដំឡើង Python ខ្លួនឯងទេ — build ជា executable តែមួយឯកតា៖
+មិនចាំបាច់ឲ្យ user ដំឡើង Python ខ្លួនឯងទេ៖ build ជា executable តែមួយឯកតា៖
 
 ```bash
 pip install -r requirements-dev.txt
 pyinstaller nexus_ai.spec
 ```
 
-File `.exe` នឹងលេចឡើងក្នុង `dist/NexusAI` (Windows: `dist/NexusAI.exe`) ។ Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ — copy folder `dist/` ទៅម៉ាស៊ីនផ្សេងបាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
+File `.exe` នឹងលេចឡើងក្នុង `dist/NexusAI` (Windows: `dist/NexusAI.exe`) ។ Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ, copy folder `dist/` ទៅម៉ាស៊ីនផ្សេងបាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
 
 ---
 
