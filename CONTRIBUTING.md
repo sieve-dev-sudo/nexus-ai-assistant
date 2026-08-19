@@ -7,8 +7,8 @@
 ## 🚀 Getting Started
 
 ```bash
-git clone https://github.com/sieve-dev-khmer/nexus-ai-assistant.git
-cd nexus-ai-assistant
+git clone <url>
+cd folder
 pip install -r requirements-dev.txt
 ```
 
@@ -99,9 +99,3 @@ docs/<short-description>       # ឧ. docs/update-readme
 4. Update `README.md`/`CHANGELOG.md` ប្រសិនបើពាក់ព័ន្ធ
 5. ផ្ញើ PR ជាមួយពិពណ៌នាច្បាស់លាស់ថាកែអ្វី ហេតុអ្វី
 6. រង់ចាំ review
-
----
-
-## ❓ សំណួរ
-
-បើមានចម្ងល់ អាចបើក [GitHub Issue](https://github.com/sieve-dev-khmer/nexus-ai-assistant/issues) បាន។
