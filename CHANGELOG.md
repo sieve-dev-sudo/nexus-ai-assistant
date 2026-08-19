@@ -16,13 +16,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   for `settings_manager.py` (was 0% covered, now 100%); overall coverage
   is 84%
 - `CONTRIBUTING.md`: setup, code style, commit convention, PR process
-- About dialog (Version, Author, License, GitHub link)
+- About dialog (Version, Author, License)
 - Live theme switching: Dark/Light and font size now apply immediately
   on Save, no app restart needed
 - Python syntax highlighting in code blocks (keywords, strings,
   comments, numbers); "output" blocks stay plain text
-- Undo for Clear Chat: a 10-second "Chat cleared — Undo" bar restores
-  the conversation if clicked
+- Undo for Clear Chat: a 10-second "Chat cleared" bar with an Undo
+  button restores the conversation if clicked
+- Export progress + quiz history as a `.csv` report
+- macOS (`.app` bundle, `.icns` icon) and Linux build support in
+  `nexus_ai.spec` (auto-detected by platform, same build command)
 
 ### Fixed
 - Settings/About dialogs: mismatched dialog height silently collapsed
@@ -34,6 +37,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   just-cleared bubble could still flash on screen; now hidden right away
 - Undo Clear Chat: showing the undo banner was accidentally discarding
   the very snapshot it needed to restore
+- Tests completing a quiz were writing to the real
+  `~/.nexus_ai/quiz_history.json` instead of a temp file
 
 ## [1.1.0] - August 14, 2026
 
