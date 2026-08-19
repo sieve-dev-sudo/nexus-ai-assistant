@@ -208,7 +208,7 @@ pytest --cov --cov-report=html            # + HTML report (htmlcov/index.html)
 
 ---
 
-## 📦 Build ជា .exe (Standalone)
+## 📦 Build ជា Standalone App (Windows / macOS / Linux)
 
 មិនចាំបាច់ឲ្យ user ដំឡើង Python ខ្លួនឯងទេ៖ build ជា executable តែមួយឯកតា៖
 
@@ -217,7 +217,15 @@ pip install -r requirements-dev.txt
 pyinstaller nexus_ai.spec
 ```
 
-File `.exe` នឹងលេចឡើងក្នុង `dist/NexusAI` (Windows: `dist/NexusAI.exe`) ។ Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ, copy folder `dist/` ទៅម៉ាស៊ីនផ្សេងបាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
+Command ដដែលនេះ ដំណើរការលើ **ទាំង ៣ platform** (icon format ជ្រើសរើសដោយស្វ័យប្រវត្តិតាម OS)៖
+
+| Platform | Output |
+|---|---|
+| Windows | `dist/NexusAI.exe` |
+| macOS | `dist/NexusAI.app` (double-click បាន ដូច App ធម្មតា) |
+| Linux | `dist/NexusAI` (binary ដំណើរការភ្លាមៗ) |
+
+Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ, copy folder ចេញទៅម៉ាស៊ីនផ្សេង (platform ដូចគ្នា) បាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
 
 ---
 
