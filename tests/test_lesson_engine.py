@@ -15,10 +15,14 @@ from LessonCodePython.lesson_engine import LessonEngine
 
 @pytest.fixture
 def engine():
-    """A LessonEngine with progress written to a throwaway temp file,
-    so tests never touch the real ~/.nexus_ai/progress.json."""
-    progress_path = Path(tempfile.mkdtemp()) / "progress.json"
-    return LessonEngine(progress_path=progress_path)
+    """A LessonEngine with progress AND quiz-history written to
+    throwaway temp files, so tests never touch the real
+    ~/.nexus_ai/progress.json or quiz_history.json."""
+    tmp = Path(tempfile.mkdtemp())
+    return LessonEngine(
+        progress_path=tmp / "progress.json",
+        quiz_history_path=tmp / "quiz_history.json",
+    )
 
 
 # ── Topic lookup ──────────────────────────────────────────────────────────
@@ -161,3 +165,60 @@ def test_keyword_match_also_marks_progress(engine):
     engine.get_response("explain for loop")  # keyword match, not exact key
     result = engine.get_response("/progress")
     assert "✅ loop" in result
+
+
+# ── Quiz history + export report ──────────────────────────────────────────
+def test_completing_a_quiz_records_history(engine):
+    engine.get_response("/quiz basic")
+    engine.get_response("B")
+    engine.get_response("B")
+    engine.get_response("A")  # finishes the 3-question quiz
+    assert len(engine.quiz_history) == 1
+    attempt = engine.quiz_history[0]
+    assert attempt["topic"] == "basic"
+    assert attempt["score"] == 3
+    assert attempt["total"] == 3
+
+
+def test_stopping_a_quiz_early_does_not_record_history(engine):
+    engine.get_response("/quiz basic")
+    engine.get_response("B")
+    engine.get_response("/stop")
+    assert engine.quiz_history == []
+
+
+def test_quiz_history_persists_across_engine_instances():
+    tmp = Path(tempfile.mkdtemp())
+    e1 = LessonEngine(progress_path=tmp / "p.json", quiz_history_path=tmp / "qh.json")
+    e1.get_response("/quiz basic")
+    e1.get_response("B")
+    e1.get_response("B")
+    e1.get_response("A")
+
+    e2 = LessonEngine(progress_path=tmp / "p.json", quiz_history_path=tmp / "qh.json")
+    assert len(e2.quiz_history) == 1
+    assert e2.quiz_history[0]["topic"] == "basic"
+
+
+def test_export_report_writes_csv(engine, tmp_path):
+    engine.get_response("basic")  # marks progress
+    engine.get_response("/quiz loop")
+    engine.get_response("B")
+    engine.get_response("B")
+    engine.get_response("A")  # completes a quiz -> history entry
+
+    out = tmp_path / "report.csv"
+    ok = engine.export_report(str(out))
+    assert ok is True
+    content = out.read_text(encoding="utf-8")
+    assert "=== Progress ===" in content
+    assert "basic,Yes" in content
+    assert "=== Quiz History ===" in content
+    assert "loop" in content
+    assert "3" in content  # score
+
+
+def test_export_report_handles_bad_path_gracefully(engine):
+    bad_path = "/nonexistent_dir_xyz/report.csv"
+    ok = engine.export_report(bad_path)
+    assert ok is False
