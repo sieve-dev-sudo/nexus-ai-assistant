@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
         self._sidebar.mode_changed  .connect(self._switch_mode)
         self._sidebar.topic_selected.connect(self._on_topic)
         self._sidebar.export_requested.connect(self._export_chat)
+        self._sidebar.export_report_requested.connect(self._export_report)
         self._sidebar.clear_chat_requested.connect(self._clear_chat)
         self._sidebar.reset_progress_requested.connect(self._reset_progress)
         self._sidebar.settings_requested.connect(self._open_settings)
@@ -164,7 +165,21 @@ class MainWindow(QMainWindow):
         if ok:
             QMessageBox.information(self, "Export Chat", f"បាន Export ទៅ:\n{path}")
         else:
-            QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ — សូមសាកល្បងម្តងទៀត។")
+            QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ, សូមសាកល្បងម្តងទៀត។")
+
+    def _export_report(self):
+        """Export the progress + quiz history report as a .csv file."""
+        default_name = f"nexus_ai_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Report", default_name, "CSV Files (*.csv);;All Files (*)"
+        )
+        if not path:
+            return  # user cancelled
+        ok = self._lesson_engine.export_report(path)
+        if ok:
+            QMessageBox.information(self, "Export Report", f"បាន Export ទៅ:\n{path}")
+        else:
+            QMessageBox.warning(self, "Export Report", "Export មិនជោគជ័យទេ, សូមសាកល្បងម្តងទៀត។")
 
     def _clear_chat(self):
         """Clear chat."""
