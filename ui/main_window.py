@@ -6,11 +6,11 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QStackedWidget,
-    QFileDialog, QMessageBox, QShortcut,
+    QFileDialog, QMessageBox, QShortcut, QApplication,
 )
 from PyQt5.QtGui import QKeySequence
 
-from LessonCodePython.theme import C
+from LessonCodePython.theme import C, build_palette
 from LessonCodePython.lesson_engine import LessonEngine
 from FixCode.fix_code_engine import FixCodeEngine, INSTRUCTIONS as FIX_WELCOME
 from ui.sidebar import Sidebar
@@ -72,7 +72,10 @@ class MainWindow(QMainWindow):
 
         self._stack = QStackedWidget()
 
-        self._lesson_engine = LessonEngine()
+        # Reuse the existing LessonEngine (and its progress/quiz state)
+        # across a UI rebuild — only create a fresh one on first build.
+        if not hasattr(self, "_lesson_engine"):
+            self._lesson_engine = LessonEngine()
         self._lesson_panel = ChatPanel(self._lesson_engine, welcome_text=LESSON_WELCOME)
         self._lesson_panel.set_placeholder("Ask a Python question…")
 
@@ -86,6 +89,30 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._stack)
 
         self._setup_shortcuts()
+
+    def _rebuild_ui(self) -> None:
+        """Tear down and rebuild the whole central widget so a new
+        theme/font-size setting is visible immediately, without an app
+        restart. The Lesson engine instance (and its progress) is kept;
+        only its UI wrapper is rebuilt, so in-flight chat text is lost
+        the same way it already would be on a restart, but progress and
+        settings are not."""
+        saved_mode_index = self._stack.currentIndex()
+        old_central = self.centralWidget()
+
+        # Re-apply the app-wide QPalette too (menus, scrollbars, etc.
+        # pull from this, not just our own stylesheets).
+        app = QApplication.instance()
+        if app is not None:
+            app.setPalette(build_palette())
+
+        self._build()
+
+        self._stack.setCurrentIndex(saved_mode_index)
+        self._sidebar.set_active_mode("lesson" if saved_mode_index == 0 else "fix")
+
+        if old_central is not None:
+            old_central.deleteLater()
 
     def _setup_shortcuts(self):
         # Ctrl+K — jump to the message input box, from anywhere in the window.
@@ -164,6 +191,7 @@ class MainWindow(QMainWindow):
     def _open_settings(self):
         """Open settings."""
         dlg = SettingsDialog(self)
+        dlg.theme_changed.connect(self._rebuild_ui)
         dlg.exec_()
 
     def _open_about(self) -> None:
