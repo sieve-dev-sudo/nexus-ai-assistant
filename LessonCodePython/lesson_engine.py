@@ -4,9 +4,10 @@ Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
 import csv
+import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Set, List, Dict, Any
+from typing import Optional, Set, List, Dict, Any, Pattern, Tuple
 
 LESSONS_PATH = Path(__file__).resolve().parent / "lessons.json"
 QUIZ_PATH = Path(__file__).resolve().parent / "quizzes.json"
@@ -17,8 +18,8 @@ QUIZ_HISTORY_PATH = Path.home() / ".nexus_ai" / "quiz_history.json"
 # Each entry: (tuple_of_keywords, topic_key)
 TOPIC_KEYWORDS = [
     # ── specific first ──────────────────────────────────────────────
-    (("data structure", "tuple", "set", "dictionary", "dict", "key value",
-      "hashmap", "data_structure"), "data_structures"),
+    (("data structure", "tuple", "set", "dictionary", "dictionaries",
+      "dict", "key value", "hashmap", "data_structure"), "data_structures"),
     (("*args", "**kwargs", "kwargs", "lambda", "higher order",
       "map(", "filter(", "advanced function", "default param",
       "functions_advanced", "function advanced"), "functions_advanced"),
@@ -27,22 +28,59 @@ TOPIC_KEYWORDS = [
       "append file", "csv", "txt file"), "file_handling"),
     (("class", "object", "inherit", "__init__", "self.",
       "polymor", "encapsul", "instance of", "override",
-      "magic method", "__str__", "super()", " oop "), "oop"),
+      "magic method", "__str__", "super()", "oop"), "oop"),
     # ── generic topics after ────────────────────────────────────────
     (("basic", "comment", "indentation", "hello world", "syntax",
       "python basic", "first program"), "basic"),
     (("variable", "data type", "int(", "float(", "bool", "none",
-      "type conversion", "ប្រភេទ", "var ", "assign"), "variables"),
+      "type conversion", "ប្រភេទ", "var", "assign"), "variables"),
     (("operator", "arithmetic", "math", "calculation", "modulo",
-      "floor div", "bitwise", "operator"), "operators"),
-    (("if ", "else:", "elif", "condition", "conditional",
+      "floor div", "bitwise"), "operators"),
+    (("if", "else:", "elif", "condition", "conditional",
       "ternary", "លក្ខខណ្ឌ"), "conditional"),
-    (("for ", "while ", "iterate", "range(",
+    (("for", "while", "iterate", "range(",
       "break", "continue", "repeat"), "loop"),
     (("array", "list", "append", "pop(", "sort(", "index", "slice",
       "បញ្ជី", "remove(", "insert("), "array"),
-    (("function", "def ", "return", "parameter", "argument",
+    (("function", "def", "return", "parameter", "argument",
       "អនុគមន៍", "func"), "function"),
+]
+
+# Keywords that are word *stems*: they may be followed by any letters
+# ("inherit" -> "inheritance", "bool" -> "boolean"). Every other English
+# keyword must match as a whole word (an optional s/es/ed/ing ending is
+# allowed), so "set" no longer matches "reset"/"offset"/"settings",
+# "dict" no longer matches "predict", and "class" no longer matches
+# "classic".
+STEM_KEYWORDS = {
+    "inherit", "polymor", "encapsul", "bool", "assign",
+    "default param", "floor div",
+}
+
+
+def _keyword_pattern(kw: str) -> str:
+    """Build the regex for one keyword, adding word boundaries on each
+    side that starts/ends with a letter, digit, or underscore.
+
+    Khmer keywords keep plain substring matching, because Khmer is
+    written without spaces between words (so word boundaries don't
+    apply). Keywords that start/end with symbols ("map(", "self.",
+    "*args") only get a boundary on their word-character side."""
+    if not kw.isascii():
+        return re.escape(kw)
+    left = r"(?<!\w)" if (kw[0].isalnum() or kw[0] == "_") else ""
+    if kw[-1].isalnum() or kw[-1] == "_":
+        right = "" if kw in STEM_KEYWORDS else r"(?:s|es|ed|ing)?(?!\w)"
+    else:
+        right = ""
+    return left + re.escape(kw) + right
+
+
+# Pre-compiled once at import time: one combined regex per topic,
+# kept in the same specific-first order as TOPIC_KEYWORDS.
+TOPIC_PATTERNS: List[Tuple[Pattern[str], str]] = [
+    (re.compile("|".join(_keyword_pattern(kw) for kw in keywords)), topic)
+    for keywords, topic in TOPIC_KEYWORDS
 ]
 
 START_TRIGGERS = ("/start", "/help", "help", "menu", "start", "មុខងារ")
@@ -207,8 +245,8 @@ class LessonEngine:
                 return self._render(value)
 
         # Keyword match — ordered list, first match wins
-        for keywords, topic in TOPIC_KEYWORDS:
-            if any(kw in lower for kw in keywords):
+        for pattern, topic in TOPIC_PATTERNS:
+            if pattern.search(lower):
                 if topic in self.lessons:
                     self._mark_completed(topic)
                     return self._render(self.lessons[topic])
@@ -249,7 +287,9 @@ class LessonEngine:
         assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
         letter = text.strip().upper()[:1]
-        chosen = ord(letter) - 65 if letter in "ABCD" else -1
+        # A tuple, not the string "ABCD": `"" in "ABCD"` is True, which
+        # used to send an empty answer into ord("") and crash.
+        chosen = ord(letter) - 65 if letter in ("A", "B", "C", "D") else -1
 
         if chosen == q["answer"]:
             state["score"] += 1
