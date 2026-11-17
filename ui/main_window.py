@@ -50,6 +50,11 @@ class MainWindow(QMainWindow):
         self.resize(1000, 720)
         self.setMinimumSize(800, 540)
         self._build()
+        # Shortcuts belong to the window itself, so they're created once
+        # here, NOT in _build(): _build() runs again on every theme
+        # change, and re-creating them there stacked duplicate shortcuts
+        # (e.g. Ctrl+L asking "Clear Chat?" twice).
+        self._setup_shortcuts()
 
     def _build(self):
         """Build."""
@@ -89,8 +94,6 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._sidebar)
         lay.addWidget(self._stack)
 
-        self._setup_shortcuts()
-
     def _rebuild_ui(self) -> None:
         """Tear down and rebuild the whole central widget so a new
         theme/font-size setting is visible immediately, without an app
@@ -116,8 +119,13 @@ class MainWindow(QMainWindow):
             old_central.deleteLater()
 
     def _setup_shortcuts(self):
+        """Create the window-wide keyboard shortcuts (called once, from __init__).
+
+        Every handler looks up self._stack / self._sidebar at the moment
+        the key is pressed (via a lambda or a bound method of self), so
+        the shortcuts keep working after _rebuild_ui() swaps in new
+        widgets."""
         # Ctrl+K — jump to the message input box, from anywhere in the window.
-        """Setup shortcuts."""
         focus_sc = QShortcut(QKeySequence("Ctrl+K"), self)
         focus_sc.activated.connect(
             lambda: self._stack.currentWidget().focus_input()
@@ -139,7 +147,10 @@ class MainWindow(QMainWindow):
 
         # Ctrl+F — jump to the sidebar's topic search box.
         search_sc = QShortcut(QKeySequence("Ctrl+F"), self)
-        search_sc.activated.connect(self._sidebar.focus_search)
+        # (lambda, not self._sidebar.focus_search directly: a direct bound
+        # method would keep pointing at the old, deleted sidebar after a
+        # theme change rebuilds the UI.)
+        search_sc.activated.connect(lambda: self._sidebar.focus_search())
 
     def _switch_mode(self, mode: str):
         """Switch mode."""
