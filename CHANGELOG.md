@@ -6,6 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 
 ## [Unreleased]
 
+### Added
+- Export Report as a styled A4 PDF (summary cards, progress bar, topic
+  table, quiz history with colored scores); CSV is still available from
+  the save dialog
+- `tests/test_report.py` (10 tests) for the report content
+
+### Fixed
+- Lesson keywords now match whole words, so "reset", "predict" and
+  "classic" no longer open the wrong topic
+- Empty answer during a quiz no longer crashes the engine
+- Keyboard shortcuts no longer stack up after changing the theme
+
 ## [1.2.0] - August 20, 2026
 
 ### Added
