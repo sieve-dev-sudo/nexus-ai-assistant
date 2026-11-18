@@ -4,6 +4,7 @@ Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
 import csv
+import html
 import re
 from datetime import datetime
 from pathlib import Path
@@ -93,6 +94,59 @@ TOPIC_ORDER = [
     "basic", "variables", "operators", "conditional", "loop", "array",
     "function", "data_structures", "functions_advanced", "file_handling", "oop",
 ]
+
+# Human-readable topic names for the PDF report (plain English, no
+# emoji, so they render with any system font).
+TOPIC_TITLES = {
+    "basic":              "Python Basics",
+    "variables":          "Variables & Data Types",
+    "operators":          "Operators",
+    "conditional":        "Conditionals (if / elif / else)",
+    "loop":               "Loops (for / while)",
+    "array":              "Lists (Array)",
+    "function":           "Functions",
+    "data_structures":    "Data Structures",
+    "functions_advanced": "Advanced Functions",
+    "file_handling":      "File Handling",
+    "oop":                "OOP (Classes & Objects)",
+}
+
+# Colors used by the PDF report (light, print-friendly palette that
+# matches the app's blue accent).
+_R = {
+    "accent":   "#2563eb",
+    "accent_d": "#1d4ed8",
+    "yellow":   "#ffd343",
+    "text":     "#16161f",
+    "muted":    "#6b6b85",
+    "line":     "#e2e2ec",
+    "row_alt":  "#f7f7fb",
+    "track":    "#e5e7f0",
+    "green":    "#059669",
+    "green_bg": "#d1fae5",
+    "amber":    "#b45309",
+    "amber_bg": "#fef3c7",
+    "red":      "#b91c1c",
+    "red_bg":   "#fee2e2",
+    "grey_bg":  "#ededf3",
+}
+
+
+def _score_colors(pct: int) -> Tuple[str, str]:
+    """Return (text, background) badge colors for a quiz percentage."""
+    if pct >= 80:
+        return _R["green"], _R["green_bg"]
+    if pct >= 50:
+        return _R["amber"], _R["amber_bg"]
+    return _R["red"], _R["red_bg"]
+
+
+def _badge(text: str, fg: str, bg: str) -> str:
+    """A small colored pill, built as a one-cell table (Qt's rich-text
+    engine ignores padding on inline <span> elements)."""
+    return (f'<table cellspacing="0" cellpadding="3" style="background-color:{bg};">'
+            f'<tr><td style="color:{fg}; font-weight:600; font-size:9pt;">'
+            f'&nbsp;{text}&nbsp;</td></tr></table>')
 
 
 class LessonEngine:
@@ -201,6 +255,149 @@ class LessonEngine:
             return True
         except OSError:
             return False
+
+    # ── PDF report ──────────────────────────────────────────────────
+    @staticmethod
+    def _attempt_pct(attempt: Dict[str, Any]) -> int:
+        """Percentage score of one quiz attempt (0 if total is 0/missing)."""
+        total = attempt.get("total") or 0
+        return round(attempt.get("score", 0) / total * 100) if total else 0
+
+    def report_summary(self) -> Dict[str, Any]:
+        """Numbers shown at the top of the PDF report: progress counts,
+        quiz count, average score, and each topic's best quiz score."""
+        done = len(self.progress & set(TOPIC_ORDER))
+        total = len(TOPIC_ORDER)
+        percents = [self._attempt_pct(a) for a in self.quiz_history]
+        best: Dict[str, int] = {}
+        for attempt in self.quiz_history:
+            topic = str(attempt.get("topic", ""))
+            best[topic] = max(best.get(topic, 0), self._attempt_pct(attempt))
+        return {
+            "done": done,
+            "total": total,
+            "progress_pct": round(done / total * 100) if total else 0,
+            "quizzes_taken": len(self.quiz_history),
+            "average_pct": round(sum(percents) / len(percents)) if percents else None,
+            "best_by_topic": best,
+        }
+
+    def build_report_html(self, version: str = "", author: str = "Mr. Siev E") -> str:
+        """Build the learning report as HTML for Qt's rich-text engine
+        (QTextDocument), which the UI then prints to a PDF file.
+
+        Kept Qt-free on purpose so it stays unit-testable. Uses only the
+        HTML/CSS subset QTextDocument supports: tables for layout,
+        bgcolor/background-color, font styles; no flexbox or radius."""
+        s = self.report_summary()
+        now = datetime.now().strftime("%d %B %Y, %H:%M")
+        avg = f"{s['average_pct']}%" if s["average_pct"] is not None else "–"
+        ver = f" &nbsp;·&nbsp; v{html.escape(version)}" if version else ""
+
+        def stat(value: str, label: str) -> str:
+            """One summary card: a big number with a small label under it."""
+            return (f'<td width="33%" style="background-color:{_R["row_alt"]};">'
+                    f'<p style="font-size:20pt; font-weight:700; color:{_R["accent"]}; '
+                    f'margin:0;">{value}</p>'
+                    f'<p style="font-size:9pt; color:{_R["muted"]}; margin:0;">{label}</p>'
+                    f'</td>')
+
+        # Progress bar: a 2-cell table, the filled cell's width = progress %.
+        pct = s["progress_pct"]
+        filled = (f'<td width="{pct}%" style="background-color:{_R["accent"]};">&nbsp;</td>'
+                  if pct > 0 else "")
+        empty = (f'<td style="background-color:{_R["track"]};">&nbsp;</td>'
+                 if pct < 100 else "")
+
+        topic_rows = []
+        for i, key in enumerate(TOPIC_ORDER, start=1):
+            bg = _R["row_alt"] if i % 2 == 0 else "#ffffff"
+            if key in self.progress:
+                status = _badge("Completed", _R["green"], _R["green_bg"])
+            else:
+                status = _badge("Not yet", _R["muted"], _R["grey_bg"])
+            if key in s["best_by_topic"]:
+                best = s["best_by_topic"][key]
+                fg, _ = _score_colors(best)
+                best_txt = f'<span style="color:{fg}; font-weight:600;">{best}%</span>'
+            else:
+                best_txt = f'<span style="color:{_R["muted"]};">–</span>'
+            topic_rows.append(
+                f'<tr style="background-color:{bg};">'
+                f'<td width="6%" style="color:{_R["muted"]};">{i}</td>'
+                f'<td width="50%">{html.escape(TOPIC_TITLES.get(key, key))}</td>'
+                f'<td width="24%">{status}</td>'
+                f'<td width="20%" align="right">{best_txt}</td></tr>'
+            )
+
+        if self.quiz_history:
+            quiz_rows = []
+            # Newest first: that's what someone reading a report wants.
+            for i, a in enumerate(reversed(self.quiz_history), start=1):
+                bg = _R["row_alt"] if i % 2 == 0 else "#ffffff"
+                p = self._attempt_pct(a)
+                fg, badge_bg = _score_colors(p)
+                topic = str(a.get("topic", ""))
+                quiz_rows.append(
+                    f'<tr style="background-color:{bg};">'
+                    f'<td width="30%" style="color:{_R["muted"]};">'
+                    f'{html.escape(str(a.get("timestamp", ""))[:16])}</td>'
+                    f'<td width="40%">{html.escape(TOPIC_TITLES.get(topic, topic))}</td>'
+                    f'<td width="12%" align="center">'
+                    f'{a.get("score", 0)} / {a.get("total", 0)}</td>'
+                    f'<td width="18%" align="right">{_badge(f"{p}%", fg, badge_bg)}</td></tr>'
+                )
+            quiz_table = (
+                f'<table width="100%" cellspacing="0" cellpadding="7">'
+                f'<tr style="background-color:{_R["accent"]}; color:#ffffff; font-weight:600;">'
+                f'<td>Date</td><td>Topic</td><td align="center">Score</td>'
+                f'<td align="right">Result</td></tr>'
+                + "".join(quiz_rows) + "</table>"
+            )
+        else:
+            quiz_table = (f'<p style="color:{_R["muted"]};">No quizzes taken yet. '
+                          f'Type <b>/quiz &lt;topic&gt;</b> in the app to start one.</p>')
+
+        return f"""
+<html><body style="font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;
+                   font-size:10pt; color:{_R['text']};">
+
+<table width="100%" cellspacing="0" cellpadding="16"
+       style="background-color:{_R['accent_d']};">
+<tr><td>
+  <p style="font-size:9pt; color:{_R['yellow']}; font-weight:700; margin:0;">
+    NEXUS AI &nbsp;:&nbsp; PYTHON ASSISTANT</p>
+  <p style="font-size:22pt; color:#ffffff; font-weight:700; margin:0;">
+    Learning Report</p>
+  <p style="font-size:9pt; color:#dbe4ff; margin:0;">Generated {now}{ver}</p>
+</td></tr></table>
+
+<p></p>
+<table width="100%" cellspacing="6" cellpadding="12"><tr>
+  {stat(f"{s['done']}/{s['total']}", "Topics completed")}
+  {stat(str(s['quizzes_taken']), "Quizzes taken")}
+  {stat(avg, "Average quiz score")}
+</tr></table>
+
+<p style="font-size:9pt; color:{_R['muted']}; margin-bottom:3px;">
+  Overall progress: <b style="color:{_R['text']};">{pct}%</b></p>
+<table width="100%" cellspacing="0" cellpadding="2"><tr>{filled}{empty}</tr></table>
+
+<h3 style="color:{_R['accent_d']}; margin-top:18px;">Topic Progress</h3>
+<table width="100%" cellspacing="0" cellpadding="7">
+<tr style="background-color:{_R['accent']}; color:#ffffff; font-weight:600;">
+  <td>#</td><td>Topic</td><td>Status</td><td align="right">Best quiz</td></tr>
+{''.join(topic_rows)}
+</table>
+
+<h3 style="color:{_R['accent_d']}; margin-top:18px;">Quiz History</h3>
+{quiz_table}
+
+<p></p>
+<hr style="background-color:{_R['line']};">
+<p align="center" style="font-size:8pt; color:{_R['muted']};">
+  Developed by {html.escape(author)} &nbsp;·&nbsp; 100% offline, rule-based Python tutor</p>
+</body></html>"""
 
     def _show_progress(self) -> str:
         """Build the progress checklist text (✅/⬜ per topic, plus a completion percentage)."""

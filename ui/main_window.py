@@ -12,11 +12,13 @@ from PyQt5.QtGui import QKeySequence
 
 from LessonCodePython.theme import C, build_palette
 from LessonCodePython.lesson_engine import LessonEngine
+from LessonCodePython.version import __version__
 from FixCode.fix_code_engine import FixCodeEngine, INSTRUCTIONS as FIX_WELCOME
 from ui.sidebar import Sidebar
 from ui.chat_panel import ChatPanel
 from ui.settings_dialog import SettingsDialog
 from ui.about_dialog import AboutDialog
+from ui.report_pdf import export_pdf
 
 LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
@@ -179,14 +181,28 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ, សូមសាកល្បងម្តងទៀត។")
 
     def _export_report(self):
-        """Export the progress + quiz history report as a .csv file."""
-        default_name = f"nexus_ai_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Export Report", default_name, "CSV Files (*.csv);;All Files (*)"
+        """Export the progress + quiz history report, as a styled PDF
+        (default) or as a plain .csv file, depending on what the user
+        picks in the save dialog."""
+        default_name = f"nexus_ai_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        path, chosen_filter = QFileDialog.getSaveFileName(
+            self, "Export Report", default_name,
+            "PDF Files (*.pdf);;CSV Files (*.csv)",
         )
         if not path:
             return  # user cancelled
-        ok = self._lesson_engine.export_report(path)
+
+        # Some platforms' dialogs don't add the extension themselves, so
+        # fall back to the filter the user picked.
+        lower = path.lower()
+        if not (lower.endswith(".pdf") or lower.endswith(".csv")):
+            path += ".csv" if chosen_filter.startswith("CSV") else ".pdf"
+
+        if path.lower().endswith(".csv"):
+            ok = self._lesson_engine.export_report(path)
+        else:
+            report_html = self._lesson_engine.build_report_html(version=__version__)
+            ok = export_pdf(report_html, path)
         if ok:
             QMessageBox.information(self, "Export Report", f"បាន Export ទៅ:\n{path}")
         else:
