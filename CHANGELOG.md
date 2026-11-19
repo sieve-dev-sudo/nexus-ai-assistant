@@ -49,8 +49,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   render empty
 - Clear Chat: `deleteLater()` doesn't hide a widget immediately, so a
   just-cleared bubble could still flash on screen; now hidden right away
-- Undo Clear Chat: showing the undo banner was accidentally discarding
-  the very snapshot it needed to restore
 - Tests completing a quiz were writing to the real
   `~/.nexus_ai/quiz_history.json` instead of a temp file
 
