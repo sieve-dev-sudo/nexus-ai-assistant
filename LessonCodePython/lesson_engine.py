@@ -101,7 +101,7 @@ TOPIC_TITLES = {
     "basic":              "Python Basics",
     "variables":          "Variables & Data Types",
     "operators":          "Operators",
-    "conditional":        "Conditionals (if / elif / else)",
+    "conditional":        "Conditionals (if / else)",
     "loop":               "Loops (for / while)",
     "array":              "Lists (Array)",
     "function":           "Functions",
@@ -129,6 +129,7 @@ _R = {
     "red":      "#b91c1c",
     "red_bg":   "#fee2e2",
     "grey_bg":  "#ededf3",
+    "empty_bg": "#eef3ff",
 }
 
 
@@ -145,7 +146,8 @@ def _badge(text: str, fg: str, bg: str) -> str:
     """A small colored pill, built as a one-cell table (Qt's rich-text
     engine ignores padding on inline <span> elements)."""
     return (f'<table cellspacing="0" cellpadding="3" style="background-color:{bg};">'
-            f'<tr><td style="color:{fg}; font-weight:600; font-size:9pt;">'
+            f'<tr><td style="color:{fg}; font-weight:600; font-size:8.5pt; '
+            f'white-space:nowrap;">'
             f'&nbsp;{text}&nbsp;</td></tr></table>')
 
 
@@ -288,75 +290,145 @@ class LessonEngine:
 
         Kept Qt-free on purpose so it stays unit-testable. Uses only the
         HTML/CSS subset QTextDocument supports: tables for layout,
-        bgcolor/background-color, font styles; no flexbox or radius."""
+        background colors and font styles (no flexbox, no border-radius).
+
+        Layout is compact on purpose: header, summary and the whole
+        topic grid fit on page 1, so the topic list is never split
+        across two pages. A long quiz history continues on page 2,
+        with its column headings repeated (<thead>)."""
         s = self.report_summary()
         now = datetime.now().strftime("%d %B %Y, %H:%M")
         avg = f"{s['average_pct']}%" if s["average_pct"] is not None else "–"
         ver = f" &nbsp;·&nbsp; v{html.escape(version)}" if version else ""
+        nowrap = "white-space:nowrap;"
 
         def stat(value: str, label: str) -> str:
-            """One summary card: a big number with a small label under it."""
+            """One summary card: a big number with a short label under it."""
             return (f'<td width="33%" style="background-color:{_R["row_alt"]};">'
-                    f'<p style="font-size:20pt; font-weight:700; color:{_R["accent"]}; '
+                    f'<p style="font-size:19pt; font-weight:700; color:{_R["accent"]}; '
                     f'margin:0;">{value}</p>'
-                    f'<p style="font-size:9pt; color:{_R["muted"]}; margin:0;">{label}</p>'
-                    f'</td>')
+                    f'<p style="font-size:8.5pt; color:{_R["muted"]}; margin:0; {nowrap}">'
+                    f'{label}</p></td>')
 
-        # Progress bar: a 2-cell table, the filled cell's width = progress %.
-        pct = s["progress_pct"]
-        filled = (f'<td width="{pct}%" style="background-color:{_R["accent"]};">&nbsp;</td>'
-                  if pct > 0 else "")
-        empty = (f'<td style="background-color:{_R["track"]};">&nbsp;</td>'
-                 if pct < 100 else "")
+        def section(title: str, note: str, new_page: bool = False) -> str:
+            """Section heading: bold title on the left, a muted note on
+            the right, and a thin accent rule underneath. new_page=True
+            starts the section at the top of a fresh page."""
+            brk = " page-break-before:always;" if new_page else ""
+            return (
+                f'<table width="100%" cellspacing="0" cellpadding="0" '
+                f'style="margin-top:16px;{brk}"><tr>'
+                f'<td style="font-size:12.5pt; font-weight:700; color:{_R["text"]};">'
+                f'{title}</td>'
+                f'<td align="right" style="font-size:8.5pt; color:{_R["muted"]}; {nowrap}">'
+                f'{note}</td></tr></table>'
+                f'<table width="100%" cellspacing="0" cellpadding="0" '
+                f'style="margin-top:4px; margin-bottom:6px;"><tr>'
+                f'<td width="12%" style="background-color:{_R["accent"]}; font-size:2pt;">'
+                f'&nbsp;</td>'
+                f'<td style="background-color:{_R["line"]}; font-size:2pt;">&nbsp;</td>'
+                f'</tr></table>'
+            )
 
-        topic_rows = []
-        for i, key in enumerate(TOPIC_ORDER, start=1):
-            bg = _R["row_alt"] if i % 2 == 0 else "#ffffff"
-            if key in self.progress:
-                status = _badge("Completed", _R["green"], _R["green_bg"])
-            else:
-                status = _badge("Not yet", _R["muted"], _R["grey_bg"])
+        def topic_card(num: int, key: str) -> str:
+            """One topic tile for the 2-column grid: number chip, name,
+            best quiz score (if any) and a Done / To do pill."""
+            done = key in self.progress
+            chip_bg = _R["accent"] if done else _R["grey_bg"]
+            chip_fg = "#ffffff" if done else _R["muted"]
+            pill = (_badge("Done", _R["green"], _R["green_bg"]) if done
+                    else _badge("To do", _R["muted"], _R["grey_bg"]))
+            # Second line only when there's a quiz score to show, so
+            # tiles stay short and the whole grid fits on page 1.
+            sub = ""
             if key in s["best_by_topic"]:
                 best = s["best_by_topic"][key]
                 fg, _ = _score_colors(best)
-                best_txt = f'<span style="color:{fg}; font-weight:600;">{best}%</span>'
-            else:
-                best_txt = f'<span style="color:{_R["muted"]};">–</span>'
-            topic_rows.append(
-                f'<tr style="background-color:{bg};">'
-                f'<td width="6%" style="color:{_R["muted"]};">{i}</td>'
-                f'<td width="50%">{html.escape(TOPIC_TITLES.get(key, key))}</td>'
-                f'<td width="24%">{status}</td>'
-                f'<td width="20%" align="right">{best_txt}</td></tr>'
+                sub = (f'<p style="font-size:8pt; color:{_R["muted"]}; margin:0;">'
+                       f'Best quiz: <span style="color:{fg}; font-weight:700;">'
+                       f'{best}%</span></p>')
+            return (
+                f'<table width="100%" cellspacing="0" cellpadding="5" '
+                f'style="background-color:{_R["row_alt"]};"><tr>'
+                f'<td width="26" align="center" style="background-color:{chip_bg}; '
+                f'color:{chip_fg}; font-weight:700; font-size:9pt; {nowrap}">{num}</td>'
+                f'<td><p style="font-size:9.5pt; font-weight:600; margin:0;">'
+                f'{html.escape(TOPIC_TITLES.get(key, key))}</p>{sub}</td>'
+                f'<td width="58" align="right">{pill}</td>'
+                f'</tr></table>'
             )
+
+        # Progress bar: a 2-cell table, the filled cell's width = progress %.
+        pct = s["progress_pct"]
+        filled = (f'<td width="{pct}%" style="background-color:{_R["accent"]}; '
+                  f'font-size:5pt;">&nbsp;</td>' if pct > 0 else "")
+        empty = (f'<td style="background-color:{_R["track"]}; font-size:5pt;">&nbsp;</td>'
+                 if pct < 100 else "")
+
+        # Topic grid: left column = first half, right column = second half,
+        # so numbers read top-to-bottom like a normal list.
+        half = (len(TOPIC_ORDER) + 1) // 2
+        left, right = TOPIC_ORDER[:half], TOPIC_ORDER[half:]
+        grid_rows = []
+        for r in range(half):
+            lcell = topic_card(r + 1, left[r])
+            rcell = topic_card(half + r + 1, right[r]) if r < len(right) else "&nbsp;"
+            grid_rows.append(f'<tr><td width="50%">{lcell}</td>'
+                             f'<td width="50%">{rcell}</td></tr>')
+        topic_grid = ('<table width="100%" cellspacing="0" cellpadding="3">'
+                      + "".join(grid_rows) + "</table>")
+
+        # Page 1 only has room for about 3 quiz rows under the topic grid.
+        # A table split across pages leaves an ugly empty band, so a
+        # longer history starts on page 2 instead, in one piece.
+        history_on_new_page = len(self.quiz_history) > 3
 
         if self.quiz_history:
             quiz_rows = []
             # Newest first: that's what someone reading a report wants.
-            for i, a in enumerate(reversed(self.quiz_history), start=1):
-                bg = _R["row_alt"] if i % 2 == 0 else "#ffffff"
+            # White rows with a thin divider (no zebra background): when a
+            # long table breaks across pages, Qt stretches the last row's
+            # background down to the page bottom, which looked like an
+            # empty grey band.
+            cell = f'border-bottom:1px solid {_R["line"]};'
+            for a in reversed(self.quiz_history):
                 p = self._attempt_pct(a)
                 fg, badge_bg = _score_colors(p)
                 topic = str(a.get("topic", ""))
                 quiz_rows.append(
-                    f'<tr style="background-color:{bg};">'
-                    f'<td width="30%" style="color:{_R["muted"]};">'
+                    f'<tr><td style="color:{_R["muted"]}; {nowrap} {cell}">'
                     f'{html.escape(str(a.get("timestamp", ""))[:16])}</td>'
-                    f'<td width="40%">{html.escape(TOPIC_TITLES.get(topic, topic))}</td>'
-                    f'<td width="12%" align="center">'
+                    f'<td style="{nowrap} {cell}">'
+                    f'{html.escape(TOPIC_TITLES.get(topic, topic))}</td>'
+                    f'<td align="center" style="{nowrap} {cell}">'
                     f'{a.get("score", 0)} / {a.get("total", 0)}</td>'
-                    f'<td width="18%" align="right">{_badge(f"{p}%", fg, badge_bg)}</td></tr>'
+                    f'<td align="right" style="{cell}">'
+                    f'{_badge(f"{p}%", fg, badge_bg)}</td></tr>'
                 )
-            quiz_table = (
-                f'<table width="100%" cellspacing="0" cellpadding="7">'
-                f'<tr style="background-color:{_R["accent"]}; color:#ffffff; font-weight:600;">'
-                f'<td>Date</td><td>Topic</td><td align="center">Score</td>'
-                f'<td align="right">Result</td></tr>'
+            quiz_block = (
+                f'<table width="100%" cellspacing="0" cellpadding="6" '
+                f'style="border-collapse:collapse;">'
+                f'<thead><tr style="background-color:{_R["accent"]}; color:#ffffff; '
+                f'font-weight:600; font-size:9pt;">'
+                f'<td width="30%">Date</td><td width="40%">Topic</td>'
+                f'<td width="12%" align="center">Score</td>'
+                f'<td width="18%" align="right">Result</td></tr></thead>'
                 + "".join(quiz_rows) + "</table>"
             )
+            quiz_note = f"{len(self.quiz_history)} attempt" + (
+                "s" if len(self.quiz_history) != 1 else "")
         else:
-            quiz_table = (f'<p style="color:{_R["muted"]};">No quizzes taken yet. '
-                          f'Type <b>/quiz &lt;topic&gt;</b> in the app to start one.</p>')
+            quiz_block = (
+                f'<table width="100%" cellspacing="0" cellpadding="14" '
+                f'style="background-color:{_R["empty_bg"]};"><tr><td align="center">'
+                f'<p style="font-size:10.5pt; font-weight:700; color:{_R["accent_d"]}; '
+                f'margin:0;">No quizzes taken yet</p>'
+                f'<p style="font-size:9pt; color:{_R["muted"]}; margin:0;">'
+                f'Type <b style="color:{_R["text"]};">/quiz &lt;topic&gt;</b> in the app '
+                f'to test yourself. Your results will appear here.</p>'
+                f'</td></tr></table>'
+            )
+            quiz_note = "0 attempts"
 
         return f"""
 <html><body style="font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;
@@ -372,31 +444,33 @@ class LessonEngine:
   <p style="font-size:9pt; color:#dbe4ff; margin:0;">Generated {now}{ver}</p>
 </td></tr></table>
 
-<p></p>
-<table width="100%" cellspacing="6" cellpadding="12"><tr>
-  {stat(f"{s['done']}/{s['total']}", "Topics completed")}
+<table width="100%" cellspacing="6" cellpadding="10" style="margin-top:8px;"><tr>
+  {stat(f"{s['done']}/{s['total']}", "Topics done")}
   {stat(str(s['quizzes_taken']), "Quizzes taken")}
-  {stat(avg, "Average quiz score")}
+  {stat(avg, "Average score")}
 </tr></table>
 
-<p style="font-size:9pt; color:{_R['muted']}; margin-bottom:3px;">
-  Overall progress: <b style="color:{_R['text']};">{pct}%</b></p>
-<table width="100%" cellspacing="0" cellpadding="2"><tr>{filled}{empty}</tr></table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:4px;"><tr>
+  <td style="font-size:8.5pt; color:{_R['muted']};">Overall progress</td>
+  <td align="right" style="font-size:8.5pt; font-weight:700;">{pct}%</td>
+</tr></table>
+<table width="100%" cellspacing="0" cellpadding="1" style="margin-top:3px;">
+  <tr>{filled}{empty}</tr></table>
 
-<h3 style="color:{_R['accent_d']}; margin-top:18px;">Topic Progress</h3>
-<table width="100%" cellspacing="0" cellpadding="7">
-<tr style="background-color:{_R['accent']}; color:#ffffff; font-weight:600;">
-  <td>#</td><td>Topic</td><td>Status</td><td align="right">Best quiz</td></tr>
-{''.join(topic_rows)}
-</table>
+{section("Topic Progress", f"{s['done']} of {s['total']} completed")}
+{topic_grid}
 
-<h3 style="color:{_R['accent_d']}; margin-top:18px;">Quiz History</h3>
-{quiz_table}
+{section("Quiz History", quiz_note, new_page=history_on_new_page)}
+{quiz_block}
 
-<p></p>
-<hr style="background-color:{_R['line']};">
-<p align="center" style="font-size:8pt; color:{_R['muted']};">
-  Developed by {html.escape(author)} &nbsp;·&nbsp; 100% offline, rule-based Python tutor</p>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px;"><tr>
+  <td style="background-color:{_R['line']}; font-size:1pt;">&nbsp;</td></tr></table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:6px;"><tr>
+  <td style="font-size:8pt; color:{_R['muted']};">
+    <b style="color:{_R['accent_d']};">Nexus AI</b> &nbsp;·&nbsp; 100% offline Python tutor</td>
+  <td align="right" style="font-size:8pt; color:{_R['muted']};">
+    Developed by {html.escape(author)}</td>
+</tr></table>
 </body></html>"""
 
     def _show_progress(self) -> str:
