@@ -101,3 +101,13 @@ def test_pdf_file_is_written(engine, tmp_path):
     path = tmp_path / "report.pdf"
     assert export_pdf(engine.build_report_html("1.2.0"), str(path)) is True
     assert path.read_bytes()[:5] == b"%PDF-"
+
+
+def test_long_history_starts_on_new_page(engine):
+    """Up to 3 quizzes fit on page 1; more start Quiz History on page 2
+    so the table is never split with an empty band under the topic grid."""
+    for _ in range(3):
+        _add_attempt(engine, "loop", 2)
+    assert "page-break-before:always" not in engine.build_report_html()
+    _add_attempt(engine, "loop", 2)
+    assert "page-break-before:always" in engine.build_report_html()
