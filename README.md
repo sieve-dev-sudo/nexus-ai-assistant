@@ -31,8 +31,7 @@
 - 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
 - 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
 - 🎨 **Syntax Highlighting** : ពណ៌ keyword/string/comment/number ក្នុង code block ដូច VS Code
-- 💾 **Export Chat** : Save conversation ជា file `.md`
-- 📑 **Export Report** : Export progress + quiz history ជា file `.csv`
+- 📑 **Export Report** : Export progress + quiz history ជា file **PDF** ស្អាតៗ (ឬ `.csv`)
 - 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន Undo 10 វិនាទី)
 - 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
 - ⚙️ **Settings** : ប្តូរ Theme (Dark/Light) និង Font size
@@ -64,6 +63,7 @@ Nexus-AI-Assistant/
 │   ├── message_bubble.py         → Bubble សារ
 │   ├── input_bar.py              → ប្រអប់វាយអក្សរ
 │   ├── icons.py                  → Python logo icon loader
+│   ├── report_pdf.py             → Export Report ជា PDF (QPrinter)
 │   ├── settings_dialog.py        → Settings dialog (Theme/Font)
 │   ├── about_dialog.py           → About dialog (Version/Author/License)
 │   └── avatars.py                → រូបតំណាង
@@ -74,6 +74,7 @@ Nexus-AI-Assistant/
 ├── tests/
 │   ├── test_fix_code_engine.py   → Test សម្រាប់ FixCode 19 rule
 │   ├── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
+│   ├── test_report.py            → Test សម្រាប់ PDF Report
 │   └── test_settings_manager.py  → Test សម្រាប់ Settings persistence
 ├── conftest.py                   → Path setup សម្រាប់ pytest
 ├── pytest.ini                    → Pytest config
@@ -152,8 +153,7 @@ Nexus-AI-Assistant/
 
 - **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ ចុចដើម្បីចម្លងកូដទាំងមូល
 - **🎨 Syntax Highlighting** : code block ក្នុង chat បង្ហាញពណ៌ keyword/string/comment/number ស្វ័យប្រវត្តិ (block ដែលដាក់ tag `output` នៅតែពណ៌ស ធម្មតា)
-- **💾 Export Chat** : ចុច button "Export Chat" នៅផ្នែកខាងក្រោម Sidebar ដើម្បី save conversation ទាំងមូល (រួម welcome message) ជា file `.md`
-- **📑 Export Report** : ចុច button "Export Report" ដើម្បី save progress checklist + quiz history ទាំងអស់ជា file `.csv`
+- **📑 Export Report** : ចុច button "Export Report" ដើម្បី save របាយការណ៍ការសិក្សាជា file **PDF** (A4) ដែលមានសង្ខេបលទ្ធផល, progress bar, តារាង topic និង quiz history ។ ក្នុង Save dialog អាចជ្រើស "CSV Files" ជំនួសបាន បើចង់បើកក្នុង Excel
 - **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog + **Undo 10 វិនាទី** បើក្រោយពីលុបចោល ចង់ស្តារត្រឡប់វិញ)
 - **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
 
@@ -201,7 +201,7 @@ Nexus-AI-Assistant/
 
 ## ✅ Testing & Code Quality
 
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **146 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 82%** (`pytest-cov`) ។
+Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **157 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 82%** (`pytest-cov`) ។
 
 ```bash
 pip install -r requirements-dev.txt
@@ -263,4 +263,3 @@ Project នេះស្ថិតក្រោម [MIT License](LICENSE) ។ អ�
 ## 👤 Author
 
 Developed by **Mr. Siev E**
-

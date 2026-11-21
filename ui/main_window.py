@@ -71,7 +71,6 @@ class MainWindow(QMainWindow):
         self._sidebar = Sidebar()
         self._sidebar.mode_changed  .connect(self._switch_mode)
         self._sidebar.topic_selected.connect(self._on_topic)
-        self._sidebar.export_requested.connect(self._export_chat)
         self._sidebar.export_report_requested.connect(self._export_report)
         self._sidebar.clear_chat_requested.connect(self._clear_chat)
         self._sidebar.reset_progress_requested.connect(self._reset_progress)
@@ -164,21 +163,6 @@ class MainWindow(QMainWindow):
         self._lesson_panel.inject_text(
             TOPIC_QUESTIONS.get(key, f"Explain {key} in Python")
         )
-
-    def _export_chat(self):
-        """Export chat."""
-        panel = self._stack.currentWidget()
-        default_name = f"nexus_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Export Chat", default_name, "Markdown Files (*.md);;All Files (*)"
-        )
-        if not path:
-            return  # user cancelled
-        ok = panel.export_history(path)
-        if ok:
-            QMessageBox.information(self, "Export Chat", f"បាន Export ទៅ:\n{path}")
-        else:
-            QMessageBox.warning(self, "Export Chat", "Export មិនជោគជ័យទេ, សូមសាកល្បងម្តងទៀត។")
 
     def _export_report(self):
         """Export the progress + quiz history report, as a styled PDF

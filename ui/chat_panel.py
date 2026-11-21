@@ -6,8 +6,6 @@ Each panel has its own engine instance and independent chat history.
 Engine runs in a background QThread so the UI never freezes.
 """
 
-from datetime import datetime
-
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QLabel, QPushButton,
 )
@@ -34,7 +32,7 @@ class _Worker(QObject):
 
 
 class ChatPanel(QWidget):
-    """Scrollable message list + input bar for one engine (Lesson or Fix Code), including its own chat history for export."""
+    """Scrollable message list + input bar for one engine (Lesson or Fix Code), including its own chat history (used by Clear Chat's Undo)."""
     def __init__(self, engine, welcome_text: str = "", parent=None):
         """Set up this widget's state and build its child widgets."""
         super().__init__(parent)
@@ -42,7 +40,7 @@ class ChatPanel(QWidget):
         self._typing_bubble = None
         self._thread = None
         self._worker = None
-        self._history = []  # list of (role, text) — for chat export
+        self._history = []  # list of (role, text), kept so Clear Chat can Undo
         self._welcome_text = welcome_text
         self._undo_snapshot = None   # history saved by clear_chat(), for Undo
         self._undo_banner = None
@@ -100,21 +98,6 @@ class ChatPanel(QWidget):
     def inject_text(self, text: str):
         """Pre-fill + auto-send (used by sidebar topic shortcuts)."""
         self._on_send(text)
-
-    def export_history(self, filepath: str) -> bool:
-        """Write the full chat transcript to a Markdown file. Returns
-        True on success, False if the write failed (e.g. bad path)."""
-        try:
-            lines = ["# Nexus AI Chat Export",
-                     f"_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_", ""]
-            for role, text in self._history:
-                who = "🧑 You" if role == "user" else "🤖 Nexus AI"
-                lines.append(f"**{who}:**\n\n{text}\n")
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write("\n".join(lines))
-            return True
-        except OSError:
-            return False
 
     def clear_chat(self):
         """Remove every message bubble and reset history, then show the

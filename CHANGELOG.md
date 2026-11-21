@@ -7,10 +7,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 ## [Unreleased]
 
 ### Added
-- Export Report as a styled A4 PDF (summary cards, progress bar, topic
-  table, quiz history with colored scores); CSV is still available from
-  the save dialog
-- `tests/test_report.py` (10 tests) for the report content
+- Export Report as a styled A4 PDF (summary cards, progress bar, a
+  2-column topic grid that always fits on page 1, quiz history with
+  colored scores); CSV is still available from the save dialog
+- `tests/test_report.py` (11 tests) for the report content
+
+### Removed
+- Export Chat (`.md`) button: Export Report (PDF) now covers saving
+  your learning progress
 
 ### Fixed
 - Lesson keywords now match whole words, so "reset", "predict" and
@@ -49,6 +53,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   render empty
 - Clear Chat: `deleteLater()` doesn't hide a widget immediately, so a
   just-cleared bubble could still flash on screen; now hidden right away
+- Undo Clear Chat: showing the undo banner was accidentally discarding
+  the very snapshot it needed to restore
 - Tests completing a quiz were writing to the real
   `~/.nexus_ai/quiz_history.json` instead of a temp file
 

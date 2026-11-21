@@ -56,7 +56,6 @@ class Sidebar(QWidget):
     """Left-hand panel: mode switcher, searchable topic list, and chat-tool buttons."""
     mode_changed = pyqtSignal(str)
     topic_selected = pyqtSignal(str)
-    export_requested = pyqtSignal()
     export_report_requested = pyqtSignal()
     clear_chat_requested = pyqtSignal()
     reset_progress_requested = pyqtSignal()
@@ -159,15 +158,8 @@ class Sidebar(QWidget):
         )
         root.addWidget(scroll, stretch=1)
 
-        # Export chat — always visible, bottom of sidebar
+        # Action buttons: always visible, bottom of sidebar
         root.addWidget(self._hr())
-        export_btn = QPushButton("💾  Export Chat")
-        export_btn.setCursor(Qt.PointingHandCursor)
-        export_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        export_btn.setStyleSheet(self._inactive_style())
-        export_btn.clicked.connect(self.export_requested.emit)
-        root.addWidget(export_btn)
-
         export_report_btn = QPushButton("📑  Export Report")
         export_report_btn.setCursor(Qt.PointingHandCursor)
         export_report_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
