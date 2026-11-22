@@ -415,3 +415,23 @@ class TestFixCodeEngineIntegration:
     def test_empty_input_returns_instructions(self):
         result = self.engine.get_response("")
         assert "Fix Code Mode" in result
+
+
+# ── Static evaluator limits (huge numbers must not freeze the app) ──────
+@pytest.mark.parametrize("code", [
+    "print(10**10**10)",
+    "x = 9**99999999\nprint(x)",
+    "s = 'a' * 10**9\nprint(s)",
+    "x = 9\nx **= 99999999\nprint(x)",
+])
+def test_huge_values_do_not_hang(code):
+    import time
+    start = time.time()
+    result = FixCodeEngine().get_response(code)
+    assert time.time() - start < 2
+    assert "📤 Output" in result
+
+
+def test_normal_power_still_evaluated():
+    result = FixCodeEngine().get_response("print(2**10)")
+    assert "1024" in result
