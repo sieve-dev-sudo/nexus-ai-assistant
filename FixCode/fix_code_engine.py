@@ -978,20 +978,55 @@ def _collect_vars(tree: ast.AST, env: Dict[str, Any]) -> None:
                 rval = _eval(node.value, env)
                 if name in env and rval is not None:
                     try:
-                        fn = {ast.Add: operator.add, ast.Sub: operator.sub,
-                              ast.Mult: operator.mul, ast.Div: operator.truediv,
-                              ast.FloorDiv: operator.floordiv,
-                              ast.Mod: operator.mod, ast.Pow: operator.pow
-                              }.get(type(node.op))
+                        # Same safe operators as _eval (no huge ** or *).
+                        fn = _OPS.get(type(node.op))
                         if fn:
-                            env[name] = fn(env[name], rval)
-                    except BaseException:
+                            result = fn(env[name], rval)
+                            if result is None or _too_big(result):
+                                env.pop(name, None)
+                            else:
+                                env[name] = result
+                    except Exception:
                         pass
 
 
-_OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+# Limits for the static evaluator, so pasted code like 10**10**10 or
+# "a" * 10**9 can't freeze the app or eat all the memory.
+_MAX_POW_EXPONENT = 1000
+_MAX_INT_BITS = 12_000   # about 3600 digits, under Python's 4300-digit str() limit
+_MAX_SEQ_LEN = 100_000
+
+
+def _too_big(value: Any) -> bool:
+    """True if a computed value is too large to keep evaluating safely."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value.bit_length() > _MAX_INT_BITS
+    if isinstance(value, (str, list, tuple, bytes)):
+        return len(value) > _MAX_SEQ_LEN
+    return False
+
+
+def _safe_pow(a: Any, b: Any) -> Any:
+    """operator.pow with a cap on the exponent and the base size."""
+    if isinstance(b, (int, float)) and abs(b) > _MAX_POW_EXPONENT:
+        return None
+    if _too_big(a):
+        return None
+    return operator.pow(a, b)
+
+
+def _safe_mul(a: Any, b: Any) -> Any:
+    """operator.mul that refuses to build huge strings/lists."""
+    for seq, n in ((a, b), (b, a)):
+        if isinstance(seq, (str, list, tuple, bytes)) and isinstance(n, int):
+            if len(seq) * max(n, 0) > _MAX_SEQ_LEN:
+                return None
+    return operator.mul(a, b)
+
+
+_OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: _safe_mul,
         ast.Div: operator.truediv, ast.FloorDiv: operator.floordiv,
-        ast.Mod: operator.mod, ast.Pow: operator.pow}
+        ast.Mod: operator.mod, ast.Pow: _safe_pow}
 _CMP_OPS = {
     ast.Eq: operator.eq,
     ast.NotEq: operator.ne,
@@ -1014,18 +1049,17 @@ def _eval(node: Optional[ast.AST], env: Dict[str, Any]) -> Any:
     try:
         if isinstance(node, ast.Constant):
             return node.value
-        if isinstance(node, ast.Num):
-            return node.n
-        if isinstance(node, ast.Str):
-            return node.s
         if isinstance(node, ast.Name):
             return env.get(node.id)
         if isinstance(node, ast.BinOp):
             l, r = _eval(node.left, env), _eval(node.right, env)
             if l is None or r is None:
                 return None
+            if _too_big(l) or _too_big(r):
+                return None
             fn = _OPS.get(type(node.op))
-            return fn(l, r) if fn else None
+            result = fn(l, r) if fn else None
+            return None if _too_big(result) else result
         if isinstance(node, ast.BoolOp):
             values = [_eval(v, env) for v in node.values]
             if any(v is None for v in values):
@@ -1062,7 +1096,7 @@ def _eval(node: Optional[ast.AST], env: Dict[str, Any]) -> Any:
                     inner = _eval(v.value, env)
                     parts.append(str(inner) if inner is not None else "?")
             return "".join(parts)
-    except BaseException:
+    except Exception:
         pass
     return None
 
