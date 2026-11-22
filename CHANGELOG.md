@@ -16,7 +16,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - Export Chat (`.md`) button: Export Report (PDF) now covers saving
   your learning progress
 
+### Changed
+- Topic matching: the longest matched keyword now wins, so everyday
+  words like "for" and "if" no longer beat real topic words
+  ("Explain functions for beginners" opens Functions, not Loops)
+- Quiz: an answer that isn't A/B/C/D asks the same question again
+  instead of counting as wrong and skipping ahead
+
 ### Fixed
+- App crash ("QThread: Destroyed while thread is still running") when a
+  sidebar topic was clicked again before the previous reply finished
+- Fix Code froze forever on huge numbers like `10**10**10` or
+  `"a" * 10**9`; the static evaluator now caps `**` and `*`
+- Input box stuck disabled forever if an engine raised an exception
+- Clear Chat during a pending reply no longer adds the old reply to
+  the new, empty chat
+- Removed `ast.Num` / `ast.Str` (gone in Python 3.14), and narrowed
+  `except BaseException` to `except Exception`
+- Corrupted or hand-edited `settings.json` values can no longer crash
+  the app at startup (theme and font scale are validated and clamped)
+- User messages are always shown as plain text (typed HTML tags are no
+  longer rendered)
+- `nexus_ai.spec` reads the version from `version.py` instead of a
+  hard-coded copy
+- "how to open a file" and "what is a for loop" now find their lesson
 - Lesson keywords now match whole words, so "reset", "predict" and
   "classic" no longer open the wrong topic
 - Empty answer during a quiz no longer crashes the engine
