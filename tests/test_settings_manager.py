@@ -8,6 +8,8 @@ import json
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from LessonCodePython.settings_manager import load_settings, save_settings, DEFAULTS
 
 
@@ -56,3 +58,21 @@ def test_save_settings_handles_unwritable_path_gracefully():
 
     ok = save_settings({"theme": "dark", "font_scale": 1.0}, path=bad_path)
     assert ok is False
+
+
+@pytest.mark.parametrize("bad, expected", [
+    ({"theme": "neon", "font_scale": "big"}, {"theme": "dark", "font_scale": 1.0}),
+    ({"theme": "light", "font_scale": 9}, {"theme": "light", "font_scale": 1.5}),
+    ({"font_scale": 0.1}, {"theme": "dark", "font_scale": 0.8}),
+    ({"font_scale": True}, {"theme": "dark", "font_scale": 1.0}),
+])
+def test_invalid_values_fall_back_to_safe_ones(tmp_path, bad, expected):
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps(bad), encoding="utf-8")
+    assert load_settings(path) == expected
+
+
+def test_non_dict_json_falls_back_to_defaults(tmp_path):
+    path = tmp_path / "settings.json"
+    path.write_text("[1, 2, 3]", encoding="utf-8")
+    assert load_settings(path) == DEFAULTS
