@@ -84,9 +84,21 @@ def test_quiz_correct_answer_increments_score(engine):
 
 def test_quiz_wrong_answer_shows_correct_one(engine):
     engine.get_response("/quiz basic")
-    result = engine.get_response("Z")  # not a valid option -> counted wrong
+    result = engine.get_response("A")  # basic Q1 answer is B -> wrong
     assert "មិនត្រឹមត្រូវ" in result
     assert "សំណួរ 2/3" in result
+
+
+@pytest.mark.parametrize("bad", ["Z", "E", "hello", "AB", ""])
+def test_quiz_invalid_answer_asks_again(engine, bad):
+    """A non-letter answer re-asks the same question: no score lost,
+    no skipping ahead."""
+    engine.get_response("/quiz basic")
+    result = engine.get_response(bad)
+    assert "សូមឆ្លើយតែអក្សរ" in result
+    assert "សំណួរ 1/3" in result
+    # The quiz is still on Q1, so a correct answer now still scores.
+    assert "សំណួរ 2/3" in engine.get_response("B")
 
 
 def test_quiz_completes_with_final_score(engine):
@@ -222,3 +234,17 @@ def test_export_report_handles_bad_path_gracefully(engine):
     bad_path = "/nonexistent_dir_xyz/report.csv"
     ok = engine.export_report(bad_path)
     assert ok is False
+
+
+# ── Topic matching: longest keyword wins ─────────────────────────────────
+@pytest.mark.parametrize("text, topic", [
+    ("Explain functions for beginners", "function"),   # not loop ("for")
+    ("if you can, explain lists", "array"),             # not conditional ("if")
+    ("how to open a file", "file_handling"),            # used to hit the fallback
+    ("what is a for loop", "loop"),
+    ("Explain Python data structures: list, tuple, set, dictionary", "data_structures"),
+    ("Explain Python advanced functions: args kwargs lambda", "functions_advanced"),
+])
+def test_longest_keyword_wins(engine, text, topic):
+    expected = engine._render(engine.lessons[topic])
+    assert engine.get_response(text) == expected
