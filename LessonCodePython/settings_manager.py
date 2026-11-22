@@ -19,14 +19,33 @@ DEFAULTS: Dict[str, Any] = {
 }
 
 
+FONT_SCALE_MIN = 0.8
+FONT_SCALE_MAX = 1.5
+
+
+def _validated(settings: Dict[str, Any]) -> Dict[str, Any]:
+    """Replace any bad value (wrong type, out of range) with a safe one,
+    so a hand-edited or corrupted settings.json can't crash the app at
+    startup (theme.py reads these values at import time)."""
+    clean = dict(DEFAULTS)
+
+    if settings.get("theme") in ("dark", "light"):
+        clean["theme"] = settings["theme"]
+
+    scale = settings.get("font_scale")
+    if isinstance(scale, (int, float)) and not isinstance(scale, bool):
+        clean["font_scale"] = min(max(float(scale), FONT_SCALE_MIN), FONT_SCALE_MAX)
+
+    return clean
+
+
 def load_settings(path: Path = SETTINGS_PATH) -> Dict[str, Any]:
-    """Load saved settings from disk, filling in any missing keys with defaults."""
+    """Load saved settings from disk, filling in any missing or invalid keys with defaults."""
     try:
         if path.exists():
             data = json.loads(path.read_text(encoding="utf-8"))
-            merged = dict(DEFAULTS)
-            merged.update({k: v for k, v in data.items() if k in DEFAULTS})
-            return merged
+            if isinstance(data, dict):
+                return _validated(data)
     except (OSError, ValueError):
         pass
     return dict(DEFAULTS)
