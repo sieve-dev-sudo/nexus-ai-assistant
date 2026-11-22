@@ -26,7 +26,7 @@ TOPIC_KEYWORDS = [
       "functions_advanced", "function advanced"), "functions_advanced"),
     (("file handling", "file_handling", "open(", "readline", "readlines",
       "writelines", "encoding", "file mode", "read file", "write file",
-      "append file", "csv", "txt file"), "file_handling"),
+      "append file", "csv", "txt file", "file"), "file_handling"),
     (("class", "object", "inherit", "__init__", "self.",
       "polymor", "encapsul", "instance of", "override",
       "magic method", "__str__", "super()", "oop"), "oop"),
@@ -39,7 +39,7 @@ TOPIC_KEYWORDS = [
       "floor div", "bitwise"), "operators"),
     (("if", "else:", "elif", "condition", "conditional",
       "ternary", "លក្ខខណ្ឌ"), "conditional"),
-    (("for", "while", "iterate", "range(",
+    (("loop", "for", "while", "iterate", "range(",
       "break", "continue", "repeat"), "loop"),
     (("array", "list", "append", "pop(", "sort(", "index", "slice",
       "បញ្ជី", "remove(", "insert("), "array"),
@@ -515,14 +515,30 @@ class LessonEngine:
                 self._mark_completed(key)
                 return self._render(value)
 
-        # Keyword match — ordered list, first match wins
-        for pattern, topic in TOPIC_PATTERNS:
-            if pattern.search(lower):
-                if topic in self.lessons:
-                    self._mark_completed(topic)
-                    return self._render(self.lessons[topic])
+        # Keyword match: the topic whose matched keyword is the longest
+        # wins, so a short everyday word like "for" or "if" can't beat a
+        # real topic word ("Explain functions for beginners" is about
+        # functions, not loops). Ties go to the earlier, more specific
+        # topic in TOPIC_KEYWORDS.
+        topic = self._match_topic(lower)
+        if topic is not None:
+            self._mark_completed(topic)
+            return self._render(self.lessons[topic])
 
         return self._fallback(user_input)
+
+    def _match_topic(self, lower: str) -> Optional[str]:
+        """Return the best-matching lesson topic for the text, or None."""
+        best_topic: Optional[str] = None
+        best_len = 0
+        for pattern, topic in TOPIC_PATTERNS:
+            if topic not in self.lessons:
+                continue
+            longest = max((len(m.group(0)) for m in pattern.finditer(lower)),
+                          default=0)
+            if longest > best_len:  # strict ">" keeps the earlier topic on a tie
+                best_topic, best_len = topic, longest
+        return best_topic
 
     # ── Quiz mode ───────────────────────────────────────────────────
     def _start_quiz(self, text: str) -> str:
@@ -557,10 +573,15 @@ class LessonEngine:
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
         q = self.quizzes[state["topic"]][state["index"]]
-        letter = text.strip().upper()[:1]
-        # A tuple, not the string "ABCD": `"" in "ABCD"` is True, which
-        # used to send an empty answer into ord("") and crash.
-        chosen = ord(letter) - 65 if letter in ("A", "B", "C", "D") else -1
+        answer = text.strip().upper()
+        letters = tuple(chr(65 + i) for i in range(len(q["options"])))
+        # Only a single option letter counts as an answer. Anything else
+        # (a typo like "E", or a whole sentence) asks the same question
+        # again instead of silently counting it as wrong.
+        if answer not in letters:
+            return (f"⚠️ សូមឆ្លើយតែអក្សរ {', '.join(letters)} ប៉ុណ្ណោះ "
+                    f"(វាយ /stop ដើម្បីបញ្ឈប់)\n\n{self._present_question()}")
+        chosen = ord(answer) - 65
 
         if chosen == q["answer"]:
             state["score"] += 1
