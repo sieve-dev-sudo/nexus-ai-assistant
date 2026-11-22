@@ -9,9 +9,15 @@
 # files, at the same relative paths the code already expects via
 # Path(__file__).resolve().parent — so no code changes were needed.
 
+import re
 import sys
 
 block_cipher = None
+
+# Read the version from LessonCodePython/version.py (the single source
+# of truth), so the macOS bundle version never goes out of date.
+with open("LessonCodePython/version.py", encoding="utf-8") as _f:
+    APP_VERSION = re.search(r'__version__\s*=\s*"([^"]+)"', _f.read()).group(1)
 
 if sys.platform == "darwin":
     ICON_PATH = "assets/python_logo.icns"
@@ -74,8 +80,7 @@ if sys.platform == "darwin":
         info_plist={
             'CFBundleName': 'Nexus AI',
             'CFBundleDisplayName': 'Nexus AI — Python Assistant',
-            'CFBundleShortVersionString': '1.2.0',
+            'CFBundleShortVersionString': APP_VERSION,
             'NSHighResolutionCapable': True,
         },
     )
-

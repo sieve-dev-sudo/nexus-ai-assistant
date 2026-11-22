@@ -33,7 +33,7 @@ TOPIC_QUESTIONS = {
     "variables":           "Explain variables and data types in Python",
     "operators":           "Explain Python operators",
     "conditional":         "Explain conditional statements if elif else",
-    "loop":                "Explain for  and while  in Python",
+    "loop":                "Explain for and while loops in Python",
     "array":               "Explain Python lists and arrays",
     "function":            "Explain Python functions with examples",
     "data_structures":     "Explain Python data structures: list, tuple, set, dictionary",
