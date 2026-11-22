@@ -246,6 +246,11 @@ class MessageBubble(QWidget):
     def _make_label(self, part: str) -> QLabel:
         """Build one plain-text message bubble label."""
         lbl = QLabel(part)
+        # User text is always shown exactly as typed: with Qt's default
+        # AutoText, typing "<b>hi</b>" or "<h1>" would render as HTML.
+        # AI messages keep AutoText, since the welcome text uses <br>.
+        if self.role == "user":
+            lbl.setTextFormat(Qt.PlainText)
         lbl.setWordWrap(True)
         lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
         bg = C["bg_user_bubble"] if self.role == "user" else C["bg_ai_bubble"]
