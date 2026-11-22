@@ -27,8 +27,13 @@ class _Worker(QObject):
         self._text = text
 
     def run(self):
-        """Run."""
-        self.finished.emit(self._engine.get_response(self._text))
+        """Run the engine. Always emits finished, even if the engine
+        raises, so the input box is never left disabled forever."""
+        try:
+            reply = self._engine.get_response(self._text)
+        except Exception as exc:  # never leave the UI stuck
+            reply = f"⚠️ មានបញ្ហាខាងក្នុង: {type(exc).__name__}: {exc}"
+        self.finished.emit(reply)
 
 
 class ChatPanel(QWidget):
@@ -45,6 +50,7 @@ class ChatPanel(QWidget):
         self._undo_snapshot = None   # history saved by clear_chat(), for Undo
         self._undo_banner = None
         self._undo_timer = None
+        self._ignore_next_reply = False  # set by clear_chat() while busy
         self._build()
         if welcome_text:
             self._add_ai_bubble(welcome_text)
@@ -105,6 +111,12 @@ class ChatPanel(QWidget):
         a fresh app launch. Keeps a snapshot for 10 seconds so the user
         can Undo before it's gone for good."""
         self._undo_snapshot = list(self._history)  # copy, for potential undo
+
+        # A reply still being computed belongs to the old conversation:
+        # drop it when it arrives instead of adding it to the new chat.
+        if self.is_busy():
+            self._ignore_next_reply = True
+        self._typing_bubble = None  # its widget is deleted just below
 
         while self._msg_lay.count() > 1:  # keep the trailing stretch
             item = self._msg_lay.takeAt(0)
@@ -191,9 +203,23 @@ class ChatPanel(QWidget):
         self._remove_banner_widgets()
         self._undo_snapshot = None
 
+    def is_busy(self) -> bool:
+        """True while a reply is still being computed in the background."""
+        # Cleared only by _on_thread_done(), i.e. after the QThread has
+        # fully stopped, not just after the reply arrived.
+        return self._thread is not None
+
     # ── private ──────────────────────────────────────────────────────────
     def _on_send(self, text: str):
-        """On send."""
+        """Send one message to the engine on a background thread.
+
+        Ignored while a previous reply is still running: the sidebar
+        topic buttons stay clickable, and starting a second QThread
+        used to replace the running one and crash the app with
+        "QThread: Destroyed while thread is still running"."""
+        if self.is_busy():
+            return
+
         self._add_user_bubble(text)
         self._bar.set_enabled(False)
         self._show_typing()
@@ -204,12 +230,26 @@ class ChatPanel(QWidget):
         self._thread.started.connect(self._worker.run)
         self._worker.finished.connect(self._on_response)
         self._worker.finished.connect(self._thread.quit)
-        self._thread.start()
+        # Free the worker and thread once the thread has really stopped.
+        self._thread.finished.connect(self._worker.deleteLater)
+        self._thread.finished.connect(self._thread.deleteLater)
+        thread = self._thread
+        thread.finished.connect(lambda: self._on_thread_done(thread))
+        thread.start()
+
+    def _on_thread_done(self, thread: QThread):
+        """Forget the finished thread so is_busy() returns False."""
+        if self._thread is thread:
+            self._thread = None
+            self._worker = None
 
     def _on_response(self, text: str):
-        """On response."""
+        """Show the engine's reply (unless the chat was cleared meanwhile)."""
         self._remove_typing()
-        self._add_ai_bubble(text)
+        if self._ignore_next_reply:
+            self._ignore_next_reply = False
+        else:
+            self._add_ai_bubble(text)
         self._bar.set_enabled(True)
         self._bar.focus()
 
