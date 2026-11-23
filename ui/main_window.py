@@ -23,7 +23,7 @@ from ui.report_pdf import export_pdf
 LESSON_WELCOME = (
     "សូមស្វាគមន៍មកកាន់ Python AI Assistant!<br>"
     "📚 Lesson Mode : វាយឈ្មោះ Topic ឬជ្រើសពី Sidebar<br>"
-    "📝 វាយ /quiz ដើម្បីធ្វើតេស្តចំណេះដឹង<br>"
+    "📝 វាយ /quiz ដើម្បីធ្វើ Quiz ទូទៅ 15 សំណួរ (ឬ /quiz 5 តាមមេរៀន)<br>"
     "📊 វាយ /progress ដើម្បីមើលវឌ្ឍនភាពការសិក្សា<br>"
     "👉 វាយ /start ដើម្បីមើល README ពេញ"
 )
