@@ -16,7 +16,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - Export Chat (`.md`) button: Export Report (PDF) now covers saving
   your learning progress
 
+### Added
+- Plain `/quiz` (or `quiz`, `/quiz all`) starts a mixed quiz: 15
+  questions from all 11 lessons (at least one per lesson), shuffled
+  differently every time; each question shows which lesson it's from
+- `/quiz list` shows the per-lesson quiz menu; `/progress` shows the
+  best mixed-quiz score, and the PDF report lists it as
+  "General Quiz (All Topics)"
+
 ### Changed
+- One name per topic everywhere: the sidebar, `/start` menu, progress
+  checklist, quiz list, quiz header and PDF report all use the same
+  numbered "icon + title" (e.g. "5. 🔁 Loop") instead of a mix of raw
+  keys like `functions_advanced` and different spellings
+- `/progress` shows each topic's best quiz score
+- `/quiz` accepts a number from the list (`/quiz 5`), the displayed
+  title (`/quiz Data Structures`), keywords (`/quiz for loop`) and
+  works without the slash (`quiz loop`); an unknown name shows the
+  numbered list instead of a dead end
+- Typing `/quiz <topic>` during a quiz switches to that quiz
+- Typing a lesson's displayed title ("Functions Advanced",
+  "Basic Python") opens that lesson
 - Topic matching: the longest matched keyword now wins, so everyday
   words like "for" and "if" no longer beat real topic words
   ("Explain functions for beginners" opens Functions, not Loops)
