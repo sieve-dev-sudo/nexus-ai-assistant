@@ -20,6 +20,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - Plain `/quiz` (or `quiz`, `/quiz all`) starts a mixed quiz: 15
   questions from all 11 lessons (at least one per lesson), shuffled
   differently every time; each question shows which lesson it's from
+- `/progress` is now a styled card that follows the dark/light theme:
+  overall % with a progress bar, stat boxes (lessons done, quizzes
+  taken, average score), one row per lesson with a ✔/○ status and its
+  best quiz score in green/amber/red, the mixed quiz's best score, and
+  the suggested next lesson
 - `/quiz list` shows the per-lesson quiz menu; `/progress` shows the
   best mixed-quiz score, and the PDF report lists it as
   "General Quiz (All Topics)"
