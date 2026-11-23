@@ -32,6 +32,28 @@
       ],
       "answer": 0,
       "explain": "កូដ Python រក្សាទុកជា file មាន extension '.py' (ឧ. my_program.py)។"
+    },
+    {
+      "question": "តើ function ណាមួយបង្ហាញលទ្ធផលលើអេក្រង់?",
+      "options": [
+        "echo()",
+        "show()",
+        "print()",
+        "console.log()"
+      ],
+      "answer": 2,
+      "explain": "print() បង្ហាញលទ្ធផលលើអេក្រង់ (ឧ. print(\"Hello\"))។ console.log() ជារបស់ JavaScript។"
+    },
+    {
+      "question": "តើ function ណាមួយទទួលទិន្នន័យពីអ្នកប្រើតាម keyboard?",
+      "options": [
+        "input()",
+        "get()",
+        "read()",
+        "scan()"
+      ],
+      "answer": 0,
+      "explain": "input() ទទួលទិន្នន័យពី keyboard ហើយតែងតែត្រឡប់ជា str (ឧ. name = input(\"Name: \"))។"
     }
   ],
   "variables": [
@@ -67,6 +89,28 @@
       ],
       "answer": 2,
       "explain": "'user1' ត្រឹមត្រូវ។ '1name' ចាប់ផ្តើមដោយលេខ, 'my-name' មាន '-', 'class' ជា reserved word។"
+    },
+    {
+      "question": "តើ type(\"10\") ត្រឡប់ Data Type អ្វី?",
+      "options": [
+        "int",
+        "str",
+        "float",
+        "bool"
+      ],
+      "answer": 1,
+      "explain": "\"10\" នៅក្នុងសញ្ញា quote ជា str (អក្សរ) មិនមែនលេខទេ។"
+    },
+    {
+      "question": "តើ int(\"25\") + 5 ស្មើប៉ុន្មាន?",
+      "options": [
+        "\"255\"",
+        "Error",
+        "30",
+        "\"30\""
+      ],
+      "answer": 2,
+      "explain": "int(\"25\") បម្លែង string ទៅជាលេខ 25 ដូច្នេះ 25 + 5 = 30។"
     }
   ],
   "operators": [
@@ -102,6 +146,28 @@
       ],
       "answer": 2,
       "explain": "'and'/'or'/'not' ជា Logical operator សម្រាប់ផ្សំ condition ច្រើនជាមួយគ្នា។"
+    },
+    {
+      "question": "តើ 2 ** 3 ស្មើប៉ុន្មាន?",
+      "options": [
+        "6",
+        "8",
+        "9",
+        "5"
+      ],
+      "answer": 1,
+      "explain": "'**' ជាស្វ័យគុណ៖ 2 ** 3 = 2 × 2 × 2 = 8។"
+    },
+    {
+      "question": "តើ 7 // 2 ស្មើប៉ុន្មាន?",
+      "options": [
+        "3.5",
+        "4",
+        "1",
+        "3"
+      ],
+      "answer": 3,
+      "explain": "'//' ជាការចែកយកតែលេខគត់ (floor division)៖ 7 // 2 = 3។ ចំណែក 7 / 2 = 3.5។"
     }
   ],
   "conditional": [
@@ -137,6 +203,28 @@
       ],
       "answer": 1,
       "explain": "Python តម្រូវឲ្យមាន ':' នៅចុងបន្ទាត់ if/elif/else។"
+    },
+    {
+      "question": "x = 10\nif x > 5:\n    print(\"A\")\nelse:\n    print(\"B\")\n\nតើកូដខាងលើបង្ហាញអ្វី?",
+      "options": [
+        "A",
+        "B",
+        "AB",
+        "Error"
+      ],
+      "answer": 0,
+      "explain": "x > 5 គឺ 10 > 5 ជា True ដូច្នេះវាបង្ហាញ \"A\" ហើយរំលង else។"
+    },
+    {
+      "question": "តើ condition ណាមួយពិនិត្យថា x នៅចន្លោះ 1 ដល់ 10 (រួមទាំង 1 និង 10)?",
+      "options": [
+        "x > 1 or x < 10",
+        "1 <= x <= 10",
+        "x >= 1 or x <= 10",
+        "x in 1..10"
+      ],
+      "answer": 1,
+      "explain": "Python អាចភ្ជាប់ការប្រៀបធៀបបាន៖ 1 <= x <= 10 មានន័យដូច x >= 1 and x <= 10។"
     }
   ],
   "loop": [
@@ -172,6 +260,28 @@
       ],
       "answer": 1,
       "explain": "range(5) ចាប់ពី 0 ដល់ 4 (5 ធាតុ, មិនរួមបញ្ចូល 5)។"
+    },
+    {
+      "question": "តើ range(2, 10, 3) បង្កើតលេខអ្វីខ្លះ?",
+      "options": [
+        "2, 4, 6, 8",
+        "3, 6, 9",
+        "2, 5, 8",
+        "2, 5, 8, 11"
+      ],
+      "answer": 2,
+      "explain": "range(start, stop, step)៖ ចាប់ពី 2 បូកម្តង 3 ហើយឈប់មុន 10 ដូច្នេះបាន 2, 5, 8។"
+    },
+    {
+      "question": "n = 0\nwhile n < 3:\n    print(n)\n    n += 1\n\nតើ loop ខាងលើ print ប៉ុន្មានដង?",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "គ្មានទីបញ្ចប់"
+      ],
+      "answer": 1,
+      "explain": "វា print 0, 1, 2 (3 ដង)។ ពេល n = 3 condition n < 3 ក្លាយជា False ហើយ loop ឈប់។"
     }
   ],
   "array": [
@@ -207,6 +317,28 @@
       ],
       "answer": 1,
       "explain": "pop(index) លុបធាតុតាម index។ remove(value) លុបតាមតម្លៃវិញ។"
+    },
+    {
+      "question": "តើ len([1, 2, 3, 4]) ស្មើប៉ុន្មាន?",
+      "options": [
+        "3",
+        "5",
+        "4",
+        "10"
+      ],
+      "answer": 2,
+      "explain": "len() រាប់ចំនួនធាតុក្នុង list។ list នេះមាន 4 ធាតុ។"
+    },
+    {
+      "question": "បើ nums = [10, 20, 30, 40] តើ nums[1:3] ស្មើអ្វី?",
+      "options": [
+        "[10, 20]",
+        "[20, 30]",
+        "[20, 30, 40]",
+        "[10, 20, 30]"
+      ],
+      "answer": 1,
+      "explain": "Slice [1:3] យកពី index 1 ដល់មុន index 3 ដូច្នេះបាន [20, 30]។"
     }
   ],
   "function": [
@@ -242,6 +374,28 @@
       ],
       "answer": 1,
       "explain": "Default parameter ផ្តល់តម្លៃលំនាំដើម ប្រសិនបើគ្មានការផ្តល់តម្លៃពេលហៅ function។"
+    },
+    {
+      "question": "def add(a, b):\n    return a + b\n\nតើ add(2, 3) ត្រឡប់តម្លៃអ្វី?",
+      "options": [
+        "5",
+        "23",
+        "None",
+        "Error"
+      ],
+      "answer": 0,
+      "explain": "add(2, 3) ផ្តល់ a = 2 និង b = 3 ហើយ return a + b = 5។"
+    },
+    {
+      "question": "តើ variable ដែលបង្កើតក្នុង function (local variable) អាចប្រើនៅខាងក្រៅ function បានទេ?",
+      "options": [
+        "បាន ជានិច្ច",
+        "បាន បើវាជា string",
+        "បាន បើវាជាលេខ",
+        "មិនបានទេ (NameError)"
+      ],
+      "answer": 3,
+      "explain": "Local variable មានតែនៅក្នុង function ប៉ុណ្ណោះ។ បើចង់យកតម្លៃចេញ ត្រូវប្រើ return។"
     }
   ],
   "data_structures": [
@@ -277,6 +431,28 @@
       ],
       "answer": 2,
       "explain": "Dictionary ប្រើ { key: value } (ឧ. person = {\"name\": \"Dara\"})។"
+    },
+    {
+      "question": "person = {\"name\": \"Dara\", \"age\": 20}\n\nតើ person[\"age\"] ត្រឡប់តម្លៃអ្វី?",
+      "options": [
+        "\"age\"",
+        "KeyError",
+        "\"Dara\"",
+        "20"
+      ],
+      "answer": 3,
+      "explain": "Dictionary យកតម្លៃតាម key៖ person[\"age\"] ត្រឡប់ 20។"
+    },
+    {
+      "question": "តើ len(set([1, 2, 2, 3, 3, 3])) ស្មើប៉ុន្មាន?",
+      "options": [
+        "6",
+        "3",
+        "1",
+        "2"
+      ],
+      "answer": 1,
+      "explain": "Set លុប duplicate ចោល ដូច្នេះនៅសល់ {1, 2, 3} មាន 3 ធាតុ។"
     }
   ],
   "functions_advanced": [
@@ -312,6 +488,28 @@
       ],
       "answer": 0,
       "explain": "Lambda function ជា anonymous function ខ្លីមួយ expression ប៉ុណ្ណោះ។"
+    },
+    {
+      "question": "square = lambda x: x * x\n\nតើ square(4) ត្រឡប់តម្លៃអ្វី?",
+      "options": [
+        "8",
+        "4",
+        "16",
+        "x * x"
+      ],
+      "answer": 2,
+      "explain": "lambda x: x * x គុណ x នឹងខ្លួនឯង៖ 4 * 4 = 16។"
+    },
+    {
+      "question": "តើ list(map(lambda x: x * 2, [1, 2, 3])) ត្រឡប់អ្វី?",
+      "options": [
+        "[2, 4, 6]",
+        "[1, 2, 3, 1, 2, 3]",
+        "[1, 4, 9]",
+        "6"
+      ],
+      "answer": 0,
+      "explain": "map() អនុវត្ត function លើធាតុនីមួយៗ៖ 1*2, 2*2, 3*2 ដូច្នេះបាន [2, 4, 6]។"
     }
   ],
   "file_handling": [
@@ -347,6 +545,28 @@
       ],
       "answer": 2,
       "explain": "'with' statement បិទ file ដោយស្វ័យប្រវត្តិ មិនចាំបាច់ហៅ f.close() ខ្លួនឯង។"
+    },
+    {
+      "question": "តើ mode លំនាំដើម (default) របស់ open() គឺអ្វី?",
+      "options": [
+        "'w'",
+        "'a'",
+        "'r'",
+        "'x'"
+      ],
+      "answer": 2,
+      "explain": "បើមិនដាក់ mode ទេ open(\"data.txt\") ប្រើ 'r' (read) ជាលំនាំដើម។"
+    },
+    {
+      "question": "តើ method ណាមួយអានមាតិកាទាំងអស់នៃ file ជា string តែមួយ?",
+      "options": [
+        "read()",
+        "readline()",
+        "readlines()",
+        "write()"
+      ],
+      "answer": 0,
+      "explain": "read() អានទាំងអស់ជា string មួយ។ readline() អានមួយជួរ ហើយ readlines() ត្រឡប់ជា list នៃជួរ។"
     }
   ],
   "oop": [
@@ -382,6 +602,28 @@
       ],
       "answer": 1,
       "explain": "'self' សំដៅទៅ object (instance) ខ្លួនឯង ត្រូវដាក់ជា parameter ទីមួយក្នុង method។"
+    },
+    {
+      "question": "class Dog(Animal):\n\nតើ Dog មានទំនាក់ទំនងអ្វីជាមួយ Animal?",
+      "options": [
+        "Dog ជា parent របស់ Animal",
+        "Dog ជា object របស់ Animal",
+        "គ្មានទំនាក់ទំនង",
+        "Dog inherit (ទទួលមរតក) ពី Animal"
+      ],
+      "answer": 3,
+      "explain": "class Dog(Animal) មានន័យថា Dog ជា child class ដែល inherit attribute និង method ពី Animal។"
+    },
+    {
+      "question": "តើ method ណាមួយកំណត់អត្ថបទដែលបង្ហាញពេល print(object)?",
+      "options": [
+        "__init__",
+        "__len__",
+        "__str__",
+        "__print__"
+      ],
+      "answer": 2,
+      "explain": "__str__ ត្រឡប់ string ដែល print() បង្ហាញសម្រាប់ object នោះ។"
     }
   ]
 }
