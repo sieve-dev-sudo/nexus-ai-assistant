@@ -9,22 +9,12 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QFont
 
 from LessonCodePython.theme import C, F
-from LessonCodePython.lesson_engine import TOPIC_KEYWORDS
+from LessonCodePython.lesson_engine import TOPIC_KEYWORDS, TOPIC_ORDER, topic_label
 from ui.icons import python_logo_pixmap
 
-TOPICS = [
-    ("basic", "🔰 Basic"),
-    ("variables", "📦 Variable && Data Types"),
-    ("operators", "🔢 Operators"),
-    ("conditional", "🔀 Conditional"),
-    ("loop", "🔁 Loop"),
-    ("array", "📋 Array"),
-    ("function", "⚙️ Function"),
-    ("data_structures", "🗂 Data Structures"),
-    ("functions_advanced", "🔧 Functions Advanced"),
-    ("file_handling", "📁 File Handling"),
-    ("oop", "🏛 OOP"),
-]
+# Same names as the /start menu, progress and quiz (from lesson_engine).
+# "&" is doubled because QPushButton treats a single "&" as a shortcut key.
+TOPICS = [(key, topic_label(key).replace("&", "&&")) for key in TOPIC_ORDER]
 
 
 def _sidebar_width() -> int:

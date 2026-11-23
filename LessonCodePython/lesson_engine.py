@@ -3,6 +3,7 @@ LessonCodePython/lesson_engine.py — 11 topics + Quiz mode
 Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
+import random
 import csv
 import html
 import re
@@ -95,21 +96,80 @@ TOPIC_ORDER = [
     "function", "data_structures", "functions_advanced", "file_handling", "oop",
 ]
 
-# Human-readable topic names for the PDF report (plain English, no
-# emoji, so they render with any system font).
+# One name per topic, used EVERYWHERE: the /start menu, the progress
+# checklist, quiz headers, the quiz topic list, the fallback list and
+# the PDF report. Each lesson heading in lessons.json starts with
+# "<icon> <title>" (a test checks this), so names never drift apart.
+# The report uses the plain title (no emoji, so any font renders it).
 TOPIC_TITLES = {
-    "basic":              "Python Basics",
+    "basic":              "Basic Python",
     "variables":          "Variables & Data Types",
     "operators":          "Operators",
-    "conditional":        "Conditionals (if / else)",
-    "loop":               "Loops (for / while)",
-    "array":              "Lists (Array)",
-    "function":           "Functions",
+    "conditional":        "Conditional",
+    "loop":               "Loop",
+    "array":              "Array",
+    "function":           "Function",
     "data_structures":    "Data Structures",
-    "functions_advanced": "Advanced Functions",
+    "functions_advanced": "Functions Advanced",
     "file_handling":      "File Handling",
-    "oop":                "OOP (Classes & Objects)",
+    "oop":                "OOP",
 }
+
+TOPIC_ICONS = {
+    "basic":              "🔰",
+    "variables":          "📦",
+    "operators":          "🔢",
+    "conditional":        "🔀",
+    "loop":               "🔁",
+    "array":              "📋",
+    "function":           "⚙️",
+    "data_structures":    "🗂",
+    "functions_advanced": "🔧",
+    "file_handling":      "📁",
+    "oop":                "🏛",
+}
+
+
+# The mixed quiz that plain "/quiz" starts: questions from every lesson.
+MIXED_QUIZ_KEY = "all"
+MIXED_QUIZ_TITLE = "General Quiz (All Topics)"
+MIXED_QUIZ_ICON = "🎯"
+MIXED_QUIZ_SIZE = 15
+# Words that also start the mixed quiz: "/quiz all", "/quiz ទាំងអស់".
+MIXED_QUIZ_WORDS = ("all", "mix", "mixed", "general", "random", "ទាំងអស់")
+# Words that show the per-lesson quiz list instead: "/quiz list".
+QUIZ_LIST_WORDS = ("list", "topics", "menu", "?", "បញ្ជី")
+
+
+def topic_title(key: str) -> str:
+    """Plain title (no emoji) for a topic or the mixed quiz; used by the
+    PDF report and CSV export."""
+    if key == MIXED_QUIZ_KEY:
+        return MIXED_QUIZ_TITLE
+    return TOPIC_TITLES.get(key, key)
+
+
+def topic_label(key: str) -> str:
+    """Chat display name for a topic: icon + title, e.g. "🔁 Loop"."""
+    if key == MIXED_QUIZ_KEY:
+        return f"{MIXED_QUIZ_ICON} Quiz ទូទៅ"
+    icon = TOPIC_ICONS.get(key)
+    title = topic_title(key)
+    return f"{icon} {title}" if icon else title
+
+
+def quiz_name(key: str) -> str:
+    """How a quiz is named in chat: "Quiz 🔁 Loop", or "🎯 Quiz ទូទៅ"
+    for the mixed quiz (which already has "Quiz" in its label)."""
+    return topic_label(key) if key == MIXED_QUIZ_KEY else f"Quiz {topic_label(key)}"
+
+
+def _normalize_name(text: str) -> str:
+    """Lower-case and turn spaces/hyphens into "_", so "Data Structures",
+    "data-structures" and "data_structures" all compare equal."""
+    text = text.strip().lower().strip(" .!?។")
+    return re.sub(r"[\s\-]+", "_", text)
+
 
 # Colors used by the PDF report (light, print-friendly palette that
 # matches the app's blue accent).
@@ -162,6 +222,7 @@ class LessonEngine:
             json.loads(quiz_path.read_text(encoding="utf-8"))
             if quiz_path.exists() else {}
         )
+        self._rng = random.Random()  # tests may replace it with a seeded one
         self._quiz_state: Optional[Dict[str, Any]] = None  # {"topic","index","score","total"}
         self.progress_path = progress_path
         self.progress: Set[str] = self._load_progress()
@@ -399,7 +460,7 @@ class LessonEngine:
                     f'<tr><td style="color:{_R["muted"]}; {nowrap} {cell}">'
                     f'{html.escape(str(a.get("timestamp", ""))[:16])}</td>'
                     f'<td style="{nowrap} {cell}">'
-                    f'{html.escape(TOPIC_TITLES.get(topic, topic))}</td>'
+                    f'{html.escape(topic_title(topic))}</td>'
                     f'<td align="center" style="{nowrap} {cell}">'
                     f'{a.get("score", 0)} / {a.get("total", 0)}</td>'
                     f'<td align="right" style="{cell}">'
@@ -474,16 +535,26 @@ class LessonEngine:
 </body></html>"""
 
     def _show_progress(self) -> str:
-        """Build the progress checklist text (✅/⬜ per topic, plus a completion percentage)."""
+        """Build the progress checklist: a numbered line per topic with
+        its ✅/⬜ mark, the same name as everywhere else, and the best
+        quiz score if that topic's quiz was taken."""
+        best = self.report_summary()["best_by_topic"]
         lines = []
-        for key in TOPIC_ORDER:
+        for num, key in enumerate(TOPIC_ORDER, start=1):
             mark = "✅" if key in self.progress else "⬜"
-            lines.append(f"  {mark} {key}")
+            line = f"  {mark} {num}. {topic_label(key)}"
+            if key in best:
+                line += f"  ·  Quiz {best[key]}%"
+            lines.append(line)
         done = len(self.progress & set(TOPIC_ORDER))
         total = len(TOPIC_ORDER)
         pct = round(done / total * 100) if total else 0
+        if MIXED_QUIZ_KEY in best:
+            lines.append(f"\n  {topic_label(MIXED_QUIZ_KEY)}: ល្អបំផុត {best[MIXED_QUIZ_KEY]}%")
         return (f"📊 វឌ្ឍនភាពការសិក្សា: {done}/{total} ({pct}%)\n\n"
-                + "\n".join(lines))
+                + "\n".join(lines)
+                + f"\n\n💡 វាយឈ្មោះមេរៀនដើម្បីរៀន · /quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ "
+                  "· /quiz 5 = Quiz មេរៀនទី 5")
 
     def get_response(self, user_input: str) -> str:
         """Route one chat message to a quiz answer, a quiz start, a progress report, a lesson lookup, or the fallback message."""
@@ -492,16 +563,21 @@ class LessonEngine:
 
         # An active quiz takes priority — the next message is an answer,
         # not a new lesson lookup.
+        quiz_arg = self._quiz_command_arg(text)
+
         if self._quiz_state is not None:
             if lower in QUIZ_STOP_TRIGGERS:
                 state = self._quiz_state
                 self._quiz_state = None
-                return (f"🛑 បញ្ឈប់ Quiz ។ ពិន្ទុ: "
-                        f"{state['score']}/{state['index']}")
-            return self._handle_quiz_answer(text)
+                return (f"🛑 បញ្ឈប់ {quiz_name(state['topic'])} ។ "
+                        f"ពិន្ទុ: {state['score']}/{state['index']}")
+            # "/quiz <topic>" mid-quiz switches to that quiz instead of
+            # being treated as an invalid answer.
+            if quiz_arg is None or not text.startswith("/"):
+                return self._handle_quiz_answer(text)
 
-        if lower.startswith("/quiz"):
-            return self._start_quiz(text)
+        if quiz_arg is not None:
+            return self._start_quiz(quiz_arg)
 
         if lower in PROGRESS_TRIGGERS:
             return self._show_progress()
@@ -509,11 +585,12 @@ class LessonEngine:
         if lower in START_TRIGGERS:
             return self._render(self.lessons["/start"])
 
-        # Exact key match (user typed the key directly)
-        for key, value in self.lessons.items():
-            if key != "/start" and lower == key:
-                self._mark_completed(key)
-                return self._render(value)
+        # Exact name match: the key ("data_structures"), the key with
+        # spaces ("data structures") or the displayed title ("Basic Python").
+        key = self._resolve_name(text, self.lessons)
+        if key is not None:
+            self._mark_completed(key)
+            return self._render(self.lessons[key])
 
         # Keyword match: the topic whose matched keyword is the longest
         # wins, so a short everyday word like "for" or "if" can't beat a
@@ -540,39 +617,134 @@ class LessonEngine:
                 best_topic, best_len = topic, longest
         return best_topic
 
+    @staticmethod
+    def _resolve_name(text: str, available: Dict[str, Any]) -> Optional[str]:
+        """Exact topic name -> key: accepts the key ("file_handling"), the
+        key written with spaces or hyphens ("file handling"), or the
+        displayed title with or without its icon ("🔰 Basic Python")."""
+        name = _normalize_name(text)
+        if name in available and name != "/start":
+            return name
+        for key in TOPIC_ORDER:
+            if key in available and name in (
+                    _normalize_name(TOPIC_TITLES[key]),
+                    _normalize_name(topic_label(key))):
+                return key
+        return None
+
     # ── Quiz mode ───────────────────────────────────────────────────
-    def _start_quiz(self, text: str) -> str:
-        """Begin a quiz for the requested topic, or list available quiz topics if none was given."""
-        parts = text.split(maxsplit=1)
-        if len(parts) < 2:
-            topics = ", ".join(sorted(self.quizzes.keys()))
-            return (f"📝 វាយ '/quiz <topic>' ដើម្បីចាប់ផ្តើម Quiz ។\n\n"
-                     f"Topics ដែលមាន Quiz: {topics}")
-        topic = parts[1].strip().lower()
-        questions = self.quizzes.get(topic)
-        if not questions:
-            return f"❌ គ្មាន Quiz សម្រាប់ '{topic}' ទេ។ សូមសាកល្បង topic ផ្សេង។"
-        self._quiz_state = {"topic": topic, "index": 0,
-                             "score": 0, "total": len(questions)}
+    @staticmethod
+    def _quiz_command_arg(text: str) -> Optional[str]:
+        """If the message is a quiz command, return what follows it
+        ("" for a bare "/quiz"); otherwise None. Accepts "/quiz loop",
+        "/quiz5", "quiz loop" and "quiz me on loops"."""
+        lower = text.lower()
+        if lower.startswith("/quiz"):
+            return text[5:].strip()
+        if lower == "quiz" or lower.startswith("quiz "):
+            return text[4:].strip()
+        return None
+
+    def _resolve_quiz_topic(self, arg: str) -> Optional[str]:
+        """Turn whatever the user typed after /quiz into a quiz key.
+
+        Tries, in order: a number from the progress list ("5"), an exact
+        name (key, key with spaces, or title), then the same keyword
+        matching lessons use ("loops", "for loop", "classes")."""
+        name = _normalize_name(arg)
+        if name.isdigit():
+            num = int(name)
+            if 1 <= num <= len(TOPIC_ORDER) and TOPIC_ORDER[num - 1] in self.quizzes:
+                return TOPIC_ORDER[num - 1]
+            return None
+        key = self._resolve_name(arg, self.quizzes)
+        if key is not None:
+            return key
+        topic = self._match_topic(arg.lower())
+        return topic if topic in self.quizzes else None
+
+    def _quiz_menu(self) -> str:
+        """Numbered list of quiz topics, in the same order and with the
+        same names as the progress checklist."""
+        return "\n".join(f"  {num}. {topic_label(key)}"
+                         for num, key in enumerate(TOPIC_ORDER, start=1)
+                         if key in self.quizzes)
+
+    def _mixed_questions(self) -> List[Tuple[str, Dict[str, Any]]]:
+        """Pick MIXED_QUIZ_SIZE questions across all lessons, shuffled.
+
+        Every lesson gets at least one question (when the size allows),
+        the remaining places are filled at random from what's left, and
+        the final order is shuffled so lessons are mixed together."""
+        pools = {k: list(self.quizzes[k]) for k in TOPIC_ORDER if self.quizzes.get(k)}
+        for qs in pools.values():
+            self._rng.shuffle(qs)
+
+        picked: List[Tuple[str, Dict[str, Any]]] = []
+        topics = list(pools)
+        self._rng.shuffle(topics)
+        for key in topics[:MIXED_QUIZ_SIZE]:          # one per lesson first
+            picked.append((key, pools[key].pop()))
+
+        rest = [(k, q) for k, qs in pools.items() for q in qs]
+        self._rng.shuffle(rest)
+        picked.extend(rest[:max(0, MIXED_QUIZ_SIZE - len(picked))])
+
+        self._rng.shuffle(picked)
+        return picked
+
+    def _start_quiz(self, arg: str) -> str:
+        """Plain "/quiz" starts the mixed quiz (15 questions from every
+        lesson). "/quiz <lesson>" starts that lesson's quiz, and
+        "/quiz list" shows the per-lesson menu."""
+        if not arg or _normalize_name(arg) in MIXED_QUIZ_WORDS:
+            questions = self._mixed_questions()
+            if not questions:
+                return "❌ មិនទាន់មាន Quiz ទេ។"
+            self._quiz_state = {"topic": MIXED_QUIZ_KEY, "questions": questions,
+                                "index": 0, "score": 0, "total": len(questions)}
+            return (f"💡 {len(questions)} សំណួរ ពីមេរៀនទាំងអស់ · "
+                    f"ចង់ធ្វើតាមមេរៀនមួយៗ វាយ /quiz list\n\n"
+                    f"{self._present_question()}")
+        if _normalize_name(arg) in QUIZ_LIST_WORDS:
+            return (f"📝 Quiz តាមមេរៀន: វាយ /quiz និងលេខ ឬឈ្មោះមេរៀន\n\n"
+                    f"{self._quiz_menu()}\n\n"
+                    f"ឧ. /quiz 5 ឬ /quiz loop  ·  /quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ")
+        topic = self._resolve_quiz_topic(arg)
+        if topic is None:
+            return (f"❌ គ្មាន Quiz សម្រាប់ '{arg[:40]}' ទេ។ "
+                    f"សូមជ្រើសរើសពីបញ្ជីនេះ:\n\n{self._quiz_menu()}\n\n"
+                    f"ឧ. /quiz 5 ឬ /quiz loop")
+        questions = [(topic, q) for q in self.quizzes[topic]]
+        self._quiz_state = {"topic": topic, "questions": questions,
+                            "index": 0, "score": 0, "total": len(questions)}
         return self._present_question()
 
     def _present_question(self) -> str:
         """Format the current quiz question with its lettered answer options."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
-        q = self.quizzes[state["topic"]][state["index"]]
+        q_topic, q = state["questions"][state["index"]]
         options_text = "\n".join(
             f"  {chr(65 + i)}. {opt}" for i, opt in enumerate(q["options"])
         )
-        return (f"❓ សំណួរ {state['index'] + 1}/{state['total']} "
-                f"({state['topic']}):\n\n{q['question']}\n\n{options_text}\n\n"
+        # The mixed quiz names each question's lesson, since they change.
+        if state["topic"] == MIXED_QUIZ_KEY:
+            header = topic_label(MIXED_QUIZ_KEY)
+            where = f"  ·  {topic_label(q_topic)}"
+        else:
+            header = f"📝 Quiz: {topic_label(state['topic'])}"
+            where = ""
+        return (f"{header}\n"
+                f"❓ សំណួរ {state['index'] + 1}/{state['total']}{where}\n\n"
+                f"{q['question']}\n\n{options_text}\n\n"
                 f"សូមឆ្លើយ A, B, C ឬ D (វាយ /stop ដើម្បីបញ្ឈប់)")
 
     def _handle_quiz_answer(self, text: str) -> str:
         """Score the given answer against the current quiz question, then advance to the next question or finish the quiz."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
-        q = self.quizzes[state["topic"]][state["index"]]
+        _, q = state["questions"][state["index"]]
         answer = text.strip().upper()
         letters = tuple(chr(65 + i) for i in range(len(q["options"])))
         # Only a single option letter counts as an answer. Anything else
@@ -597,7 +769,9 @@ class LessonEngine:
             score, total = state["score"], state["total"]
             self._record_quiz_attempt(state["topic"], score, total)
             self._quiz_state = None
-            return f"{feedback}\n{explain}\n\n🎉 Quiz បញ្ចប់! ពិន្ទុ: {score}/{total}"
+            return (f"{feedback}\n{explain}\n\n"
+                    f"🎉 {quiz_name(state['topic'])} បញ្ចប់! "
+                    f"ពិន្ទុ: {score}/{total}")
 
         return f"{feedback}\n{explain}\n\n{self._present_question()}"
 
@@ -612,8 +786,9 @@ class LessonEngine:
 
     def _fallback(self, user_input: str) -> str:
         """Response used when the input matches no command, topic, or keyword."""
-        topics = [k for k in self.lessons if k != "/start"]
-        listing = "\n".join(f"  • {t}" for t in topics)
+        topics = [k for k in TOPIC_ORDER if k in self.lessons]
+        listing = "\n".join(f"  {num}. {topic_label(k)}"
+                            for num, k in enumerate(topics, start=1))
         return (
             f'🤔 ខ្ញុំមិនយល់អំពីអ្វីដែលអ្នកសរសេរ: "{user_input[:60]}"\n\n'
             f"💡 Topics ({len(topics)}):\n\n{listing}\n\n"

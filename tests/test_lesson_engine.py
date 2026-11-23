@@ -5,12 +5,16 @@ Covers topic lookup (incl. the oop/loop keyword-collision regression),
 Quiz mode's state machine, and Progress tracking's persistence.
 """
 import json
+import random
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from LessonCodePython.lesson_engine import LessonEngine
+from LessonCodePython.lesson_engine import (
+    LessonEngine, TOPIC_ORDER, TOPIC_TITLES, TOPIC_ICONS, topic_label,
+    MIXED_QUIZ_KEY, MIXED_QUIZ_SIZE,
+)
 
 
 @pytest.fixture
@@ -64,9 +68,12 @@ def test_unknown_input_falls_back_gracefully(engine):
 
 
 # ── Quiz mode ─────────────────────────────────────────────────────────────
-def test_quiz_lists_topics_with_no_argument(engine):
-    result = engine.get_response("/quiz")
-    assert "basic" in result
+@pytest.mark.parametrize("command", ["/quiz list", "/quiz topics", "/quiz ?"])
+def test_quiz_list_shows_every_lesson(engine, command):
+    result = engine.get_response(command)
+    assert "1. 🔰 Basic Python" in result
+    assert "11. 🏛 OOP" in result
+    assert engine._quiz_state is None   # just a menu, no quiz started
 
 
 def test_quiz_start_presents_first_question(engine):
@@ -106,7 +113,7 @@ def test_quiz_completes_with_final_score(engine):
     engine.get_response("B")  # Q1 correct
     engine.get_response("B")  # Q2 correct
     result = engine.get_response("A")  # Q3 correct
-    assert "Quiz បញ្ចប់" in result
+    assert "Quiz 🔰 Basic Python បញ្ចប់" in result
     assert "3/3" in result
 
 
@@ -149,7 +156,7 @@ def test_progress_starts_empty(engine):
 def test_viewing_a_topic_marks_it_complete(engine):
     engine.get_response("basic")
     result = engine.get_response("/progress")
-    assert "✅ basic" in result
+    assert "✅ 1. 🔰 Basic Python" in result
 
 
 def test_progress_persists_across_engine_instances():
@@ -160,8 +167,8 @@ def test_progress_persists_across_engine_instances():
 
     e2 = LessonEngine(progress_path=progress_path)
     result = e2.get_response("/progress")
-    assert "✅ basic" in result
-    assert "✅ loop" in result
+    assert "✅ 1. 🔰 Basic Python" in result
+    assert "✅ 5. 🔁 Loop" in result
     assert "2/11" in result
 
 
@@ -176,7 +183,7 @@ def test_progress_file_is_valid_json_on_disk():
 def test_keyword_match_also_marks_progress(engine):
     engine.get_response("explain for loop")  # keyword match, not exact key
     result = engine.get_response("/progress")
-    assert "✅ loop" in result
+    assert "✅ 5. 🔁 Loop" in result
 
 
 # ── Quiz history + export report ──────────────────────────────────────────
@@ -248,3 +255,172 @@ def test_export_report_handles_bad_path_gracefully(engine):
 def test_longest_keyword_wins(engine, text, topic):
     expected = engine._render(engine.lessons[topic])
     assert engine.get_response(text) == expected
+
+
+# ── One topic name everywhere ────────────────────────────────────────────
+@pytest.mark.parametrize("key", TOPIC_ORDER)
+def test_lesson_heading_matches_topic_label(engine, key):
+    """Each lesson heading in lessons.json starts with the same
+    "<icon> <title>" used by progress, quiz and the /start menu."""
+    heading = engine.lessons[key]["theory"].splitlines()[0]
+    assert heading.startswith(topic_label(key)), heading
+
+
+def test_every_topic_has_title_and_icon():
+    assert set(TOPIC_TITLES) == set(TOPIC_ORDER) == set(TOPIC_ICONS)
+
+
+def test_start_menu_lists_every_topic_by_label(engine):
+    menu = engine.get_response("/start")
+    for num, key in enumerate(TOPIC_ORDER, start=1):
+        assert f"{num}. {topic_label(key)}" in menu
+
+
+def test_progress_shows_labels_not_raw_keys(engine):
+    result = engine.get_response("/progress")
+    assert "functions_advanced" not in result
+    assert "9. 🔧 Functions Advanced" in result
+
+
+def test_progress_shows_best_quiz_score(engine):
+    engine.get_response("/quiz basic")
+    for answer in "BBA":   # all 3 correct
+        engine.get_response(answer)
+    assert "1. 🔰 Basic Python  ·  Quiz 100%" in engine.get_response("/progress")
+
+
+def test_quiz_header_uses_label(engine):
+    result = engine.get_response("/quiz functions_advanced")
+    assert result.startswith("📝 Quiz: 🔧 Functions Advanced")
+
+
+def test_quiz_stop_names_the_topic(engine):
+    engine.get_response("/quiz loop")
+    assert "🔁 Loop" in engine.get_response("/stop")
+
+
+# ── /quiz accepts the names people actually type ─────────────────────────
+@pytest.mark.parametrize("command, topic", [
+    ("/quiz 5", "loop"),                         # number from the list
+    ("/quiz5", "loop"),
+    ("/quiz 11", "oop"),
+    ("/quiz Loops", "loop"),                     # plural / capitals
+    ("/quiz for loop", "loop"),                  # keyword
+    ("/quiz data structures", "data_structures"),
+    ("/quiz Functions Advanced", "functions_advanced"),
+    ("/quiz file handling", "file_handling"),
+    ("/quiz file-handling", "file_handling"),
+    ("/quiz Basic Python", "basic"),             # displayed title
+    ("/quiz Variables & Data Types", "variables"),
+    ("/quiz 🔁 Loop", "loop"),                   # title copied with its icon
+    ("quiz loop", "loop"),                       # without the slash
+    ("quiz me on classes", "oop"),
+])
+def test_quiz_accepts_names_numbers_and_keywords(engine, command, topic):
+    result = engine.get_response(command)
+    assert result.startswith(f"📝 Quiz: {topic_label(topic)}"), result
+
+
+@pytest.mark.parametrize("bad", ["/quiz 0", "/quiz 99", "/quiz pizza"])
+def test_unknown_quiz_shows_the_numbered_list(engine, bad):
+    result = engine.get_response(bad)
+    assert "គ្មាន Quiz" in result
+    assert "5. 🔁 Loop" in result
+
+
+def test_quiz_command_mid_quiz_switches_quiz(engine):
+    engine.get_response("/quiz loop")
+    result = engine.get_response("/quiz oop")
+    assert result.startswith("📝 Quiz: 🏛 OOP")
+
+
+@pytest.mark.parametrize("text, topic", [
+    ("data structures", "data_structures"),
+    ("Functions Advanced", "functions_advanced"),
+    ("Basic Python", "basic"),
+    ("File Handling", "file_handling"),
+])
+def test_typing_a_lesson_name_opens_it(engine, text, topic):
+    assert engine.get_response(text) == engine._render(engine.lessons[topic])
+
+
+# ── Plain /quiz: one mixed quiz from every lesson ────────────────────────
+def _answer_all(engine, correct=True):
+    """Answer every remaining question (right or wrong); return the last reply."""
+    reply = ""
+    while engine._quiz_state is not None:
+        _, q = engine._quiz_state["questions"][engine._quiz_state["index"]]
+        right = "ABCD"[q["answer"]]
+        wrong = "ABCD"[(q["answer"] + 1) % len(q["options"])]
+        reply = engine.get_response(right if correct else wrong)
+    return reply
+
+
+@pytest.mark.parametrize("command", ["/quiz", "quiz", "/quiz all", "/quiz ទាំងអស់"])
+def test_plain_quiz_starts_mixed_quiz(engine, command):
+    result = engine.get_response(command)
+    assert "🎯 Quiz ទូទៅ" in result
+    assert f"សំណួរ 1/{MIXED_QUIZ_SIZE}" in result
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_mixed_quiz_has_15_unique_questions_from_every_lesson(engine, seed):
+    engine._rng = random.Random(seed)
+    engine.get_response("/quiz")
+    questions = engine._quiz_state["questions"]
+    assert len(questions) == MIXED_QUIZ_SIZE == 15
+    assert {t for t, _ in questions} == set(TOPIC_ORDER)       # all 11 lessons
+    assert len({q["question"] for _, q in questions}) == 15     # no repeats
+
+
+def test_mixed_quiz_order_changes_between_runs(engine):
+    engine._rng = random.Random(1)
+    engine.get_response("/quiz"); first = engine._quiz_state["questions"]
+    engine.get_response("/stop")
+    engine.get_response("/quiz"); second = engine._quiz_state["questions"]
+    assert first != second
+
+
+def test_mixed_quiz_names_each_questions_lesson(engine):
+    result = engine.get_response("/quiz")
+    first_topic, _ = engine._quiz_state["questions"][0]
+    assert f"សំណួរ 1/15  ·  {topic_label(first_topic)}" in result
+
+
+def test_mixed_quiz_full_score_and_history(engine):
+    engine.get_response("/quiz")
+    result = _answer_all(engine, correct=True)
+    assert "🎉 🎯 Quiz ទូទៅ បញ្ចប់" in result
+    assert "15/15" in result
+    attempt = engine.quiz_history[-1]
+    assert (attempt["topic"], attempt["score"], attempt["total"]) == (MIXED_QUIZ_KEY, 15, 15)
+
+
+def test_mixed_quiz_best_score_shown_in_progress(engine):
+    engine.get_response("/quiz")
+    _answer_all(engine, correct=False)
+    engine.get_response("/quiz")
+    _answer_all(engine, correct=True)
+    assert "🎯 Quiz ទូទៅ: ល្អបំផុត 100%" in engine.get_response("/progress")
+
+
+def test_mixed_quiz_stop(engine):
+    engine.get_response("/quiz")
+    engine.get_response("A")
+    result = engine.get_response("/stop")
+    assert "🎯 Quiz ទូទៅ" in result and "/1" in result
+    assert engine.quiz_history == []
+
+
+def test_mixed_quiz_in_pdf_report(engine):
+    engine.get_response("/quiz")
+    _answer_all(engine)
+    assert "General Quiz (All Topics)" in engine.build_report_html()
+
+
+def test_lesson_quiz_still_works_after_mixed(engine):
+    engine.get_response("/quiz")
+    engine.get_response("/stop")
+    result = engine.get_response("/quiz 5")
+    assert result.startswith("📝 Quiz: 🔁 Loop")
+    assert "សំណួរ 1/3" in result
