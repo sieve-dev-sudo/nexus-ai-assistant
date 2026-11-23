@@ -2,182 +2,147 @@
 
 # Nexus AI : Python Assistant
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![PyQt5](https://img.shields.io/badge/PyQt5-41CD52?style=for-the-badge&logo=qt&logoColor=white)
-![Rule-Based](https://img.shields.io/badge/AI-Rule--Based-orange?style=for-the-badge)
-![Topics](https://img.shields.io/badge/TOPICS-11-6f42c1?style=for-the-badge)
-![Offline](https://img.shields.io/badge/Offline-Yes-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-1.2.0-informational?style=for-the-badge)
-
-```
-███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗     █████╗ ██╗    ██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗
-████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝    ██╔══██╗██║    ██╔══██╗╚██╗ ██╔╝╚══██╔══╝██║  ██║██╔═══██╗████╗  ██║
-██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗    ███████║██║    ██████╔╝ ╚████╔╝    ██║   ███████║██║   ██║██╔██╗ ██║
-██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║    ██╔══██║██║    ██╔═══╝   ╚██╔╝     ██║   ██╔══██║██║   ██║██║╚██╗██║
-██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║    ██║  ██║██║    ██║        ██║      ██║   ██║  ██║╚██████╔╝██║ ╚████║
-╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ╚═╝  ╚═╝╚═╝    ╚═╝        ╚═╝      ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-```
-
 </div>
+
+## 🛠️ Tech Stack
+
+**ភាសាសរសេរកូដ និង ឧបករណ៍**
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![PyQt5](https://img.shields.io/badge/PyQt5-41CD52?style=flat&logo=qt&logoColor=white)
+![JSON](https://img.shields.io/badge/JSON-000000?style=flat&logo=json&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
+![PyInstaller](https://img.shields.io/badge/PyInstaller-Build-blue?style=flat)
+![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=flat&logo=visualstudiocode&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)
 
 ---
 
 ## ✨ Features
 
-- 📚 **Lesson Mode** : សួរសំណួរ ឬជ្រើសរើស Topic ពី Sidebar ដើម្បីរៀន Python ( 11 ប្រធានបទ )
-- 📝 **Quiz Mode** : វាយ `/quiz <topic>` ដើម្បីធ្វើតេស្តចំណេះដឹង multiple-choice (3 សំណួរ/topic, 33 សរុប)
-- 📊 **Progress Tracking** : វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (local file, គ្មាន account)
-- 🛠 **Fix Code Mode** : Paste កូដ Python ចូល App នឹងវិភាគ រកកំហុស និងកែឱ្យស្វ័យប្រវត្តិ
-- 📋 **Copy Button** : ចម្លង code block ក្នុង chat ដោយចុចតែម្តង
-- 🎨 **Syntax Highlighting** : ពណ៌ keyword/string/comment/number ក្នុង code block ដូច VS Code
-- 📑 **Export Report** : Export progress + quiz history ជា file **PDF** ស្អាតៗ (ឬ `.csv`)
-- 🗑️ **Clear Chat** : លុប conversation បច្ចុប្បន្នចោល (មាន Undo 10 វិនាទី)
-- 🔄 **Reset Progress** : លុបវឌ្ឍនភាពការសិក្សាចោល (មាន confirmation)
-- ⚙️ **Settings** : ប្តូរ Theme (Dark/Light) និង Font size
-- ℹ️ **About Dialog** : មើល Version, Author, License
-- 🔍 **Search Lessons** : ស្វែងរក topic ដោយផ្ទាល់ពី Sidebar (តាមឈ្មោះ ឬ keyword ខាងក្នុង)
-- ⌨️ **Keyboard Shortcuts** : `Ctrl+K`, `Esc`, `Ctrl+L`, `Ctrl+,`, `Ctrl+F`
-- 🎨 UI រចនាបែប Dark Theme ស្រដៀង Chat App សម័យទំនើប
-- ⚡ ដំណើរការលឿន ព្រោះគ្មាន API call ខាងក្រៅ
+- **Lesson Mode**: រៀន Python 11 មេរៀន តាំងពីមូលដ្ឋានរហូតដល់ OOP ដោយវាយឈ្មោះមេរៀន ពាក្យគន្លឹះ ឬចុចពី Sidebar
+- **Quiz Mode**: Quiz multiple-choice **5 សំណួរ** សម្រាប់មេរៀននីមួយៗ (**55 សំណួរ**សរុប) ឆ្លើយ A/B/C/D ហើយមានការពន្យល់ក្រោយចម្លើយនីមួយៗ
+- **Flexible Quiz Command**: ចាប់ផ្តើម Quiz បានតាមលេខ (`/quiz 5`) ឈ្មោះមេរៀន (`/quiz Data Structures`) ឬពាក្យគន្លឹះ (`/quiz for loop`)
+- **Progress Card**: `/progress` បង្ហាញកាតស្អាតមាន progress bar ស្ថិតិ ពិន្ទុ Quiz ល្អបំផុតតាមមេរៀន (ពណ៌ បៃតង/លឿង/ក្រហម) 
+- **Fix Code Mode**: Paste កូដ Python ចូល App នឹងរកកំហុស **19 ប្រភេទ** កែឲ្យស្វ័យប្រវត្តិ និងប៉ាន់ស្មាន Output
+- **Export Report**: Export វឌ្ឍនភាព និងប្រវត្តិ Quiz ជា **PDF** A4 ស្អាតៗ (ឬ `.csv` សម្រាប់ Excel)
+- **Syntax Highlighting + Copy Button**: Code block ក្នុង chat មានពណ៌ដូច VS Code និងប៊ូតុងចម្លងកូដដោយចុចតែម្តង
+- **Search Topics**: ស្វែងរកមេរៀនពី Sidebar តាមឈ្មោះ ឬពាក្យគន្លឹះខាងក្នុង (ឧ. "lambda", "class")
+- **Settings**: ប្តូរ Theme **Dark/Light** និង Font size 80% ដល់ 150% ដំណើរការភ្លាមៗ មិនបាច់ restart
+- **Clear Chat + Undo**: លុប conversation ចោល ហើយអាច Undo វិញបានក្នុង 10 វិនាទី
+- **Keyboard Shortcuts**: `Ctrl+K`, `Esc`, `Ctrl+L`, `Ctrl+,`, `Ctrl+F`
+- **100% Offline**: Rule-based AI ដំណើរការក្នុងម៉ាស៊ីនទាំងស្រុង គ្មាន Internet គ្មាន API key ហើយលឿន
 
 ---
 
-## 📁 Project Structure
+## 💬 Chat Commands
 
+| Command | មុខងារ |
+|---|---|
+| `/start` | បង្ហាញម៉ឺនុយពេញ និងបញ្ជីមេរៀនទាំង 11 |
+| ឈ្មោះមេរៀន ឬពាក្យគន្លឹះ | បើកមេរៀន (ឧ. `loop`, `Basic Python`, `what is a class`) |
+| `/quiz list` | បង្ហាញបញ្ជី Quiz តាមមេរៀន (`/quiz` តែឯងក៏បាន) |
+| `/quiz 5` ឬ `/quiz loop` | ចាប់ផ្តើម Quiz មេរៀនទី 5 (5 សំណួរ) |
+| `A` `B` `C` `D` | ឆ្លើយសំណួរ Quiz |
+| `/stop` | បញ្ឈប់ Quiz ពាក់កណ្តាល |
+| `/progress` | មើលកាតវឌ្ឍនភាពការសិក្សា |
+
+---
+
+## 📚 Lessons & Quiz
+
+| លេខ | មេរៀន | ខ្លឹមសារ |
+|---|---|---|
+| `1` | 🔰 Basic Python | comment, indentation, `print()`, case-sensitive |
+| `2` | 📦 Variables & Data Types | `int`, `float`, `str`, `bool`, type conversion |
+| `3` | 🔢 Operators | arithmetic, comparison, logical |
+| `4` | 🔀 Conditional | `if` / `elif` / `else` |
+| `5` | 🔁 Loop | `for` / `while`, `range()`, `break`, `continue` |
+| `6` | 📋 Array | list: `append`, `pop`, index, slice |
+| `7` | ⚙️ Function | `def`, `return`, parameters |
+| `8` | 🗂 Data Structures | tuple, set, dictionary |
+| `9` | 🔧 Functions Advanced | `*args`, `**kwargs`, `lambda`, `map()` |
+| `10` | 📁 File Handling | `open()`, read/write/append, `with` |
+| `11` | 🏛 OOP | class, object, `__init__`, inheritance |
+
+មេរៀនណាដែលបានមើលរួច នឹងត្រូវកត់ត្រាក្នុង Progress ដោយស្វ័យប្រវត្តិ (រក្សាទុកក្នុងម៉ាស៊ីន គ្មាន account)។
+
+---
+
+## 🛠 Fix Code Mode
+
+**Fix Code Mode** ជួយរកកំហុសក្នុងកូដ Python ពន្យល់ថាខុសត្រង់ណា និងកែឲ្យដោយស្វ័យប្រវត្តិ។ App វិភាគកូដតែប៉ុណ្ណោះ មិនដំណើរការ (run) កូដរបស់អ្នកពិតប្រាកដទេ ដូច្នេះមានសុវត្ថិភាព និងដំណើរការ Offline។
+
+### របៀបប្រើ
+
+1. ចុច **🛠 Fix Code** នៅផ្នែក MODE ក្នុង Sidebar
+2. Paste កូដ Python ចូលប្រអប់វាយអក្សរ (`Shift+Enter` = ចុះបន្ទាត់ថ្មី)
+3. ចុច **Send** ឬ `Enter`
+
+### 📋 ចម្លើយមាន 3 ផ្នែក
+
+| ផ្នែក | អ្វីដែលបង្ហាញ |
+|---|---|
+| 🔍 **Error ដែលរកឃើញ** | បញ្ជីកំហុសនីមួយៗ៖ លេខបន្ទាត់ (Line), មូលហេតុ និងវិធីកែ (⚙️) |
+| ✅ **Fixed Code** | កូដដែលកែរួច អាចចុច Copy យកទៅប្រើបានភ្លាម |
+| 📤 **Output** | លទ្ធផលដែល `print()` នឹងបង្ហាញ (`?` = គណនាមិនបាន) |
+
+### ឧទាហរណ៍
+
+កូដដែល Paste ចូល (មានកំហុស 5)៖
+
+```python
+name = "Dara"
+if name = "Dara"
+    Print("Hi {name}");
 ```
-Nexus-AI-Assistant/
-├── FixCode/
-│   └── fix_code_engine.py        → Logic កែកូដ ( regex + AST, type-hinted, mypy-clean )
-├── LessonCodePython/
-│   ├── lesson_engine.py          → Logic ផ្គូផ្គង keyword → topic + Quiz mode
-│   ├── lessons.json              → ខ្លឹមសារមេរៀនទាំង 11
-│   ├── quizzes.json              → សំណួរ Quiz តាម topic
-│   ├── settings_manager.py       → Theme/Font settings persistence
-│   ├── version.py                → App version (single source of truth)
-│   └── theme.py                  → ពណ៌ (Dark/Light) និង Font កំណត់រួម
-├── ui/
-│   ├── main_window.py            → បង្អួចមេ + Keyboard shortcuts
-│   ├── sidebar.py                → ម៉ឺនុយឆ្វេង + Search topics
-│   ├── chat_panel.py             → ផ្ទាំង Chat
-│   ├── message_bubble.py         → Bubble សារ
-│   ├── input_bar.py              → ប្រអប់វាយអក្សរ
-│   ├── icons.py                  → Python logo icon loader
-│   ├── report_pdf.py             → Export Report ជា PDF (QPrinter)
-│   ├── settings_dialog.py        → Settings dialog (Theme/Font)
-│   ├── about_dialog.py           → About dialog (Version/Author/License)
-│   └── avatars.py                → រូបតំណាង
-├── assets/
-│   ├── python_logo.png           → Python logo (icon source)
-│   ├── python_logo.ico           → Icon សម្រាប់ Windows build
-│   └── python_logo.icns          → Icon សម្រាប់ macOS build
-├── tests/
-│   ├── test_fix_code_engine.py   → Test សម្រាប់ FixCode 19 rule
-│   ├── test_lesson_engine.py     → Test សម្រាប់ Lesson/Quiz/Progress
-│   ├── test_report.py            → Test សម្រាប់ PDF Report
-│   └── test_settings_manager.py  → Test សម្រាប់ Settings persistence
-├── conftest.py                   → Path setup សម្រាប់ pytest
-├── pytest.ini                    → Pytest config
-├── .coveragerc                   → Coverage.py config
-├── nexus_ai.spec                 → PyInstaller build config
-├── main.py                       → ចំណុចចូល ( Entry point )
-├── README.md
-├── CHANGELOG.md                  → History នៃការផ្លាស់ប្តូរតាម version
-├── CONTRIBUTING.md                → Guide សម្រាប់អ្នកចង់ contribute
-├── LICENSE                       → MIT License
-├── requirements.txt              → Dependencies
-└── requirements-dev.txt          → Dependencies សម្រាប់ testing
+
+App ឆ្លើយតប៖
+
+```text
+🔍 Error ដែលរកឃើញ (5):
+  1. Line 3: 'Print' ខុស case → ត្រូវជា 'print'
+  2. Line 3: ';' នៅចុងបន្ទាត់ : Python មិនប្រើ ';'
+  3. Line 3: String មាន {...} ប៉ុន្តែភ្លេច 'f' prefix
+  4. Line 2: 'if' statement គ្មាន ':' នៅចុង
+  5. Line 2: ប្រើ '=' ក្នុង condition : ប្រហែលជាចង់ប្រើ '=='
+
+✅ Fixed Code:
+name = "Dara"
+if name == "Dara":
+    print(f"Hi {name}")
+
+📤 Output:
+Hi Dara
 ```
 
----
+### 🧩 កំហុស 19 ប្រភេទដែល App ស្គាល់
 
-## 🚀 How to Run
+| # | កំហុស | ខុស | ត្រូវ |
+|---|---|---|---|
+| 1 | `:` បាត់ក្រោយ `if` `elif` `else` `for` `while` `def` `class` | `if x > 5` | `if x > 5:` |
+| 2 | សញ្ញា `;` នៅចុងបន្ទាត់ | `print("Hi");` | `print("Hi")` |
+| 3 | Quote ឬ វង់ក្រចក មិនបានបិទ | `print("Hi"` | `print("Hi")` |
+| 4 | Indentation ខុស (លាយ Tab និង Space) | Tab + Space | 4 spaces |
+| 5 | Typo នៃ `print` | `printf(` `Printtf(` | `print(` |
+| 6 | អក្សរធំ/តូចខុស | `Print()` `PRINT()` | `print()` |
+| 7 | Keyword សរសេរខុស | `retrun` `improt` `ture` | `return` `import` `True` |
+| 8 | `else if` | `else if x:` | `elif x:` |
+| 9 | f-string ភ្លេច `f` | `"Hi {name}"` | `f"Hi {name}"` |
+| 10 | `=` ក្នុង condition | `if x = 5:` | `if x == 5:` |
+| 11 | Comparison operator ខុស | `=<` `=>` `<>` | `<=` `>=` `!=` |
+| 12 | `++` / `--` មិនមានក្នុង Python | `x++` | `x += 1` |
+| 13 | Python 2 print statement | `print "Hi"` | `print("Hi")` |
+| 14 | Python 2 `raw_input()` | `raw_input()` | `input()` |
+| 15 | Mutable default argument | `def f(x=[]):` | ព្រមាន : ប្រើ `x=None` |
+| 16 | Variable មិនទាន់ define | `print(y)` | ព្រមាន : បង្កើត `y` ជាមុន |
+| 17 | Off-by-one ក្នុង loop | `range(len(x) + 1)` | ព្រមាន : `range(len(x))` |
+| 18 | `is` ជាមួយតម្លៃ | `if x is 5:` | ព្រមាន : `if x == 5:` |
+| 19 | ប៉ាន់ស្មាន Output | `print(2 + 3)` | 📤 Output : `5` |
 
-1. Clone ឬ download repository នេះ
-2. ដំឡើង dependencies ៖ `pip install -r requirements.txt`
-3. ដំណើរការ App ៖ `python main.py`
-
----
-
-## 📚 Lesson Mode : Topics
-
-| Key                   | ពិពណ៌នា                                           |
-|-----------------------|---------------------------------------------------|
-| `basic`               | ចំណេះដឹងមូលដ្ឋាន Python, comment, syntax           |
-| `variables`           | Variables & Data Types                            |
-| `operators`           | Arithmetic / Bitwise Operators                    |
-| `conditional`         | if / elif / else                                  |
-| `loop`                | for / while, break, continue                      |
-| `array`               | List: append, pop, sort, slice                    |
-| `function`            | def, return, parameters                           |
-| `data_structures`     | tuple, set, dictionary                            |
-| `functions_advanced`  | *args, **kwargs, lambda                           |
-| `file_handling`       | open(), read/write file                           |
-| `oop`                 | class, object, inheritance, `__init__`            |
-
-**របៀបប្រើ:** វាយឈ្មោះ topic ដោយផ្ទាល់ ឬពាក្យគន្លឹះពាក់ព័ន្ធ ក្នុង chat box, ឬវាយ `/start` ដើម្បីមើល menu ពេញ។
-
-📝 **Quiz:** វាយ `/quiz <topic>` (ឧ. `/quiz loop`) ដើម្បីធ្វើតេស្តចំណេះដឹង៖ **3 សំណួរ multiple-choice/topic**, ឆ្លើយ A/B/C/D, វាយ `/stop` ដើម្បីបញ្ឈប់ពាក់កណ្តាល។
-
-📊 **Progress:** វាយ `/progress` ដើម្បីមើលថា topic ណាបានរៀនរួច (កត់ត្រាទុកស្វ័យប្រវត្តិពេលមើលមេរៀន)។
-
----
-
-## 🛠 Fix Code Mode : អ្វីខ្លះដែលកែបាន
-
-1. **Typo នៃ `print()`** : ដូចជា `printf(`, `Printtf(`, `PrInt(`
-2. **Case ខុស** : `Print()`, `PRINT()` → `print()`
-3. **សញ្ញា `;`** នៅចុងបន្ទាត់ ( មិនចាំបាច់ក្នុង Python )
-4. **Quote / Parenthesis** មិនបានបិទ
-5. **`:` បាត់** ក្រោយ if / elif / else / for / while / def / class
-6. **Logic error** : ប្រើ `=` ជំនួស `==` ក្នុង condition
-7. **Indentation** : លាយ tabs និង spaces, ឬ indent មិនប្រក្រតី
-8. **គណនា Output** : ប៉ាន់ស្មានលទ្ធផលពី `print()` ដោយប្រើ Python AST
-9. **Python 2 print statement** : `print "x"` → `print("x")`
-10. **Invalid comparison operators** : `=<` `=>` `<>` → `<=` `>=` `!=`
-11. **Keyword misspellings** : `retrun`, `improt`, `flase`, `ture`, `els` ជាដើម
-12. **`else if`** → `elif`
-13. **Python 2 `raw_input()`** → `input()`
-14. **`++` / `--`** → `+= 1` / `-= 1`
-15. **f-string ភ្លេច `f`** : `"Hi {name}"` → `f"Hi {name}"`
-16. **Mutable default argument** : `def f(x=[]):` ព្រមាន
-17. **Undefined name** : ប្រើ variable/function ដែលមិនឃើញកន្លែង define ព្រមាន
-18. **Off-by-one loop** : `range(len(x)+1)`, `i <= len(x)` ព្រមាន
-19. **`is` vs `==`** : ប្រៀបធៀប literal ដោយ `is` (`x is 5`) ព្រមាន
-
-**របៀបប្រើ:** Paste កូដ Python ចូល input bar រួចចុច Send ( Shift+Enter = ចុះបន្ទាត់ថ្មី ) ។
-
----
-
-## 💾 Chat Tools
-
-- **📋 Copy Button** : លេចឡើងនៅជ្រុងខាងលើស្តាំ code block ណាមួយ ចុចដើម្បីចម្លងកូដទាំងមូល
-- **🎨 Syntax Highlighting** : code block ក្នុង chat បង្ហាញពណ៌ keyword/string/comment/number ស្វ័យប្រវត្តិ (block ដែលដាក់ tag `output` នៅតែពណ៌ស ធម្មតា)
-- **📑 Export Report** : ចុច button "Export Report" ដើម្បី save របាយការណ៍ការសិក្សាជា file **PDF** (A4) ដែលមានសង្ខេបលទ្ធផល, progress bar, តារាង topic និង quiz history ។ ក្នុង Save dialog អាចជ្រើស "CSV Files" ជំនួសបាន បើចង់បើកក្នុង Excel
-- **🗑️ Clear Chat** : ចុច button "Clear Chat" ដើម្បីលុប conversation បច្ចុប្បន្នចោល (មាន confirmation dialog + **Undo 10 វិនាទី** បើក្រោយពីលុបចោល ចង់ស្តារត្រឡប់វិញ)
-- **🔄 Reset Progress** : ចុច button "Reset Progress" ដើម្បីលុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោល (មាន confirmation dialog)
-
----
-
-## ⚙️ Settings
-
-ចុច "⚙️ Settings" ក្នុង Sidebar ដើម្បីប្តូរ៖
-- **Theme** : Dark ឬ Light
-- **Font Size** : 80% - 150%
-
-*ការផ្លាស់ប្តូរដំណើរការភ្លាមៗ, មិនចាំបាច់ restart App ទេ។*
-
----
-
-## ℹ️ About
-
-ចុច "ℹ️ About" ក្នុង Sidebar ដើម្បីមើល Version, Author, និង License របស់ project ។
-
----
-
-## 🔍 Search Lessons
-
-ប្រអប់ "🔍 Search topics…" នៅខាងលើ Topics list អាចស្វែងរកបាន ទាំងតាម **ឈ្មោះ topic** និង **keyword ខាងក្នុង** (ឧ. វាយ "class" ឬ "lambda" នឹងបង្ហាញ topic ត្រូវគ្នាភ្លាមៗ)។
+**ព្រមាន** = App ប្រាប់ឲ្យពិនិត្យ ប៉ុន្តែមិនកែកូដឲ្យទេ ព្រោះអាស្រ័យលើគោលបំណងរបស់អ្នក។
 
 ---
 
@@ -186,80 +151,106 @@ Nexus-AI-Assistant/
 | Key | មុខងារ |
 |---|---|
 | `Ctrl+K` | Focus ទៅ input box |
-| `Esc` | Clear អក្សរដែលកំពុងវាយក្នុង input |
+| `Esc` | លុបអក្សរដែលកំពុងវាយក្នុង input |
 | `Ctrl+L` | Clear Chat |
 | `Ctrl+,` | បើក Settings |
-| `Ctrl+F` | Focus ទៅ Search topics box |
+| `Ctrl+F` | Focus ទៅ Search topics |
 
 ---
 
-## 🎨 Theme
+## 📁 Project Structure
 
-ពណ៌ និង Font ទាំងអស់ត្រូវបានកំណត់នៅកន្លែងតែមួយ (`LessonCodePython/theme.py`) ធ្វើឱ្យងាយស្រួល Customize ទម្រង់ UI ទាំងមូល។
-
----
-
-## ✅ Testing & Code Quality
-
-Project នេះមាន automated test (pytest) គ្របដណ្តប់ FixCode engine (19 rule) និង Lesson engine (topic lookup, Quiz, Progress)៖ សរុប **157 test** ។ Core logic (`FixCode/`, `LessonCodePython/`) មាន **type hint ពេញលេញ** (mypy-verified, 0 error), **docstring coverage 100%**, និង **test coverage 82%** (`pytest-cov`) ។
-
-```bash
-pip install -r requirements-dev.txt
-pytest                                    # run test ធម្មតា
-pytest --cov --cov-report=term-missing    # + coverage report
-pytest --cov --cov-report=html            # + HTML report (htmlcov/index.html)
+```
+nexus-ai-assistant/
+├── FixCode/
+│   └── fix_code_engine.py    → រកកំហុស និងកែកូដ (regex + AST)
+├── LessonCodePython/
+│   ├── lesson_engine.py      → ផ្គូផ្គងមេរៀន, Quiz, Progress, Report
+│   ├── lessons.json          → ខ្លឹមសារមេរៀនទាំង 11
+│   ├── quizzes.json          → សំណួរ Quiz (5 សំណួរ/មេរៀន)
+│   ├── settings_manager.py   → រក្សាទុក Theme/Font settings
+│   ├── theme.py              → ពណ៌ Dark/Light និង Font
+│   └── version.py            → App version
+├── ui/
+│   ├── main_window.py        → បង្អួចមេ + Keyboard shortcuts
+│   ├── sidebar.py            → ម៉ឺនុយឆ្វេង + Search topics
+│   ├── chat_panel.py         → ផ្ទាំង Chat (background thread)
+│   ├── message_bubble.py     → Bubble សារ + Code block
+│   ├── input_bar.py          → ប្រអប់វាយអក្សរ
+│   ├── report_pdf.py         → Export Report ជា PDF
+│   ├── settings_dialog.py    → Settings dialog
+│   ├── about_dialog.py       → About dialog
+│   ├── icons.py              → Python logo icon
+│   └── avatars.py            → រូបតំណាង
+├── assets/                   → Python logo (.png, .ico, .icns)
+├── tests/
+│   ├── test_fix_code_engine.py
+│   ├── test_lesson_engine.py
+│   ├── test_report.py
+│   └── test_settings_manager.py
+├── main.py                   → entry point
+├── nexus_ai.spec             → PyInstaller build config
+├── requirements.txt
+├── requirements-dev.txt
+├── CHANGELOG.md
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## 📦 Build ជា Standalone App (Windows / macOS / Linux)
+## 🚀 How to Run
 
-មិនចាំបាច់ឲ្យ user ដំឡើង Python ខ្លួនឯងទេ៖ build ជា executable តែមួយឯកតា៖
+1. Clone Repository :
 
-```bash
-pip install -r requirements-dev.txt
-pyinstaller nexus_ai.spec
-```
+   ```bash
+   git clone <url-repo> nexus-ai-assistant
+   cd nexus-ai-assistant
+   ```
 
-Command ដដែលនេះ ដំណើរការលើ **ទាំង ៣ platform** (icon format ជ្រើសរើសដោយស្វ័យប្រវត្តិតាម OS)៖
+2. Install Dependencies :
 
-| Platform | Output |
-|---|---|
-| Windows | `dist/NexusAI.exe` |
-| macOS | `dist/NexusAI.app` (double-click បាន ដូច App ធម្មតា) |
-| Linux | `dist/NexusAI` (binary ដំណើរការភ្លាមៗ) |
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Data file ទាំងអស់ (lessons.json, quizzes.json, python logo) ត្រូវបាន bundle ចូលរួចហើយ, copy folder ចេញទៅម៉ាស៊ីនផ្សេង (platform ដូចគ្នា) បាន run ភ្លាមៗដោយមិនចាំបាច់ install Python ។
+3. Run App :
 
----
+   ```bash
+   python main.py
+   ```
 
-## 📝 Notes
+   វាយ `/start` ដើម្បីមើលម៉ឺនុយ ឬជ្រើសមេរៀនពី Sidebar ហើយប្តូរទៅ **Fix Code** mode ដើម្បីកែកូដ
 
-- App នេះមិនតម្រូវឱ្យមាន Internet ឬ API Key ទេ ( 100% Local Logic )
-- សម្រាប់គោលបំណងសិក្សា / Demo : មិនមែនជា AI Model ពិតប្រាកដ (LLM) ទេ គឺជា Rule-based system
-- Desktop AI Chatbot Application សម្រាប់បង្រៀន និងកែកូដ Python សាងសង់ដោយ **PyQt5**
-- App នេះដំណើរការជា **Rule-based AI** ១០០% ក្នុងម៉ាស៊ីន Local និង គ្មានការហៅ API ខាងក្រៅ ឬប្រើ Internet ទេ។
+4. ដើម្បី Run Tests :
+
+   ```bash
+   pip install -r requirements-dev.txt
+   pytest -v
+   pytest --cov --cov-report=term-missing   # + coverage report
+   ```
+
+5. Build ជា Standalone App (មិនបាច់ដំឡើង Python) :
+
+   ```bash
+   pip install -r requirements-dev.txt
+   pyinstaller nexus_ai.spec
+   ```
+
+   | Platform | Output |
+   |---|---|
+   | Windows | `dist/NexusAI.exe` |
+   | macOS | `dist/NexusAI.app` |
+   | Linux | `dist/NexusAI` |
 
 ---
 
 ## 📄 License
 
-Project នេះស្ថិតក្រោម [MIT License](LICENSE) ។ អាចប្រើ កែច្នៃ និងចែកចាយបានដោយសេរី។
-
----
-
-## 📜 Changelog
-
-មើលការផ្លាស់ប្តូរតាម version ទាំងអស់នៅ [CHANGELOG.md](CHANGELOG.md) ។
-
----
-
-## 🤝 Contributing
-
-ចង់ជួយ contribute? សូមអាន [CONTRIBUTING.md](CONTRIBUTING.md) សម្រាប់ code style, របៀប run test, និង PR process ។
+**MIT License :** អ្នកអាចប្រើ ចម្លង កែប្រែ និងចែកចាយកូដនេះដោយសេរី ឲ្យតែរក្សាទុកសេចក្តីជូនដំណឹង Copyright។ មើលព័ត៌មានលម្អិតក្នុងឯកសារ [LICENSE](LICENSE)។ ការផ្លាស់ប្តូរតាម version មើលនៅ [CHANGELOG.md](CHANGELOG.md)។
 
 ---
 
 ## 👤 Author
 
-Developed by **Mr. Siev E**
+**Built with ❤️ and code by Mr. Siev E**
