@@ -45,15 +45,15 @@
       "explain": "print() បង្ហាញលទ្ធផលលើអេក្រង់ (ឧ. print(\"Hello\"))។ console.log() ជារបស់ JavaScript។"
     },
     {
-      "question": "តើ function ណាមួយទទួលទិន្នន័យពីអ្នកប្រើតាម keyboard?",
+      "question": "ក្នុង Python តើ name និង Name ជាអ្វី?",
       "options": [
-        "input()",
-        "get()",
-        "read()",
-        "scan()"
+        "ឈ្មោះ variable តែមួយ",
+        "ឈ្មោះ variable 2 ខុសគ្នា",
+        "Error ព្រោះមានអក្សរធំ",
+        "អាស្រ័យលើ OS"
       ],
-      "answer": 0,
-      "explain": "input() ទទួលទិន្នន័យពី keyboard ហើយតែងតែត្រឡប់ជា str (ឧ. name = input(\"Name: \"))។"
+      "answer": 1,
+      "explain": "Python ជា Case-sensitive៖ អក្សរតូច និងអក្សរធំខុសគ្នា ដូច្នេះ name និង Name ជា 2 variable ផ្សេងគ្នា។"
     }
   ],
   "variables": [
@@ -216,15 +216,15 @@
       "explain": "x > 5 គឺ 10 > 5 ជា True ដូច្នេះវាបង្ហាញ \"A\" ហើយរំលង else។"
     },
     {
-      "question": "តើ condition ណាមួយពិនិត្យថា x នៅចន្លោះ 1 ដល់ 10 (រួមទាំង 1 និង 10)?",
+      "question": "score = 85\nif score >= 90:\n    grade = \"A\"\nelif score >= 80:\n    grade = \"B\"\nelse:\n    grade = \"C\"\n\nតើ grade ស្មើអ្វី?",
       "options": [
-        "x > 1 or x < 10",
-        "1 <= x <= 10",
-        "x >= 1 or x <= 10",
-        "x in 1..10"
+        "\"A\"",
+        "\"C\"",
+        "\"B\"",
+        "Error"
       ],
-      "answer": 1,
-      "explain": "Python អាចភ្ជាប់ការប្រៀបធៀបបាន៖ 1 <= x <= 10 មានន័យដូច x >= 1 and x <= 10។"
+      "answer": 2,
+      "explain": "85 >= 90 ជា False ដូច្នេះពិនិត្យ elif៖ 85 >= 80 ជា True ហើយ grade = \"B\"។ else មិនដំណើរការទេ។"
     }
   ],
   "loop": [
@@ -330,15 +330,15 @@
       "explain": "len() រាប់ចំនួនធាតុក្នុង list។ list នេះមាន 4 ធាតុ។"
     },
     {
-      "question": "បើ nums = [10, 20, 30, 40] តើ nums[1:3] ស្មើអ្វី?",
+      "question": "fruits = [\"apple\", \"banana\", \"cherry\"]\n\nតើ fruits[3] ផ្តល់លទ្ធផលអ្វី?",
       "options": [
-        "[10, 20]",
-        "[20, 30]",
-        "[20, 30, 40]",
-        "[10, 20, 30]"
+        "\"cherry\"",
+        "\"apple\"",
+        "IndexError",
+        "None"
       ],
-      "answer": 1,
-      "explain": "Slice [1:3] យកពី index 1 ដល់មុន index 3 ដូច្នេះបាន [20, 30]។"
+      "answer": 2,
+      "explain": "List នេះមាន 3 ធាតុ index ត្រឹមត្រូវគឺ 0 ដល់ 2។ index 3 ហួសព្រំដែន ដូច្នេះកើត IndexError។ ធាតុចុងក្រោយគឺ fruits[-1]។"
     }
   ],
   "function": [
@@ -387,15 +387,15 @@
       "explain": "add(2, 3) ផ្តល់ a = 2 និង b = 3 ហើយ return a + b = 5។"
     },
     {
-      "question": "តើ variable ដែលបង្កើតក្នុង function (local variable) អាចប្រើនៅខាងក្រៅ function បានទេ?",
+      "question": "def greet(name, greeting=\"Hello\"):\n    return f\"{greeting}, {name}!\"\n\nតើ greet(\"Dara\") ត្រឡប់អ្វី?",
       "options": [
-        "បាន ជានិច្ច",
-        "បាន បើវាជា string",
-        "បាន បើវាជាលេខ",
-        "មិនបានទេ (NameError)"
+        "\"Dara, Hello!\"",
+        "\"Hello, Dara!\"",
+        "Error",
+        "\", Dara!\""
       ],
-      "answer": 3,
-      "explain": "Local variable មានតែនៅក្នុង function ប៉ុណ្ណោះ។ បើចង់យកតម្លៃចេញ ត្រូវប្រើ return។"
+      "answer": 1,
+      "explain": "មិនបានផ្តល់ greeting ទេ ដូច្នេះវាប្រើតម្លៃលំនាំដើម \"Hello\" ហើយត្រឡប់ \"Hello, Dara!\"។"
     }
   ],
   "data_structures": [
@@ -444,15 +444,15 @@
       "explain": "Dictionary យកតម្លៃតាម key៖ person[\"age\"] ត្រឡប់ 20។"
     },
     {
-      "question": "តើ len(set([1, 2, 2, 3, 3, 3])) ស្មើប៉ុន្មាន?",
+      "question": "nums = {1, 2, 3, 2, 1}\n\nតើ len(nums) ស្មើប៉ុន្មាន?",
       "options": [
-        "6",
+        "5",
         "3",
         "1",
         "2"
       ],
       "answer": 1,
-      "explain": "Set លុប duplicate ចោល ដូច្នេះនៅសល់ {1, 2, 3} មាន 3 ធាតុ។"
+      "explain": "Set លុប duplicate ចោលដោយស្វ័យប្រវត្តិ ដូច្នេះ nums = {1, 2, 3} មាន 3 ធាតុ។"
     }
   ],
   "functions_advanced": [
