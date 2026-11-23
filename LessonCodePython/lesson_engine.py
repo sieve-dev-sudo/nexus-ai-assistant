@@ -3,7 +3,6 @@ LessonCodePython/lesson_engine.py — 11 topics + Quiz mode
 Order matters: more-specific keywords first to avoid wrong matches.
 """
 import json
-import random
 import csv
 import html
 import re
@@ -132,38 +131,20 @@ TOPIC_ICONS = {
 }
 
 
-# The mixed quiz that plain "/quiz" starts: questions from every lesson.
-MIXED_QUIZ_KEY = "all"
-MIXED_QUIZ_TITLE = "General Quiz (All Topics)"
-MIXED_QUIZ_ICON = "🎯"
-MIXED_QUIZ_SIZE = 15
-# Words that also start the mixed quiz: "/quiz all", "/quiz ទាំងអស់".
-MIXED_QUIZ_WORDS = ("all", "mix", "mixed", "general", "random", "ទាំងអស់")
-# Words that show the per-lesson quiz list instead: "/quiz list".
+# Words that show the quiz list: "/quiz list" (plain "/quiz" does too).
 QUIZ_LIST_WORDS = ("list", "topics", "menu", "?", "បញ្ជី")
 
 
 def topic_title(key: str) -> str:
-    """Plain title (no emoji) for a topic or the mixed quiz; used by the
-    PDF report and CSV export."""
-    if key == MIXED_QUIZ_KEY:
-        return MIXED_QUIZ_TITLE
+    """Plain title (no emoji) for a topic; used by the PDF report."""
     return TOPIC_TITLES.get(key, key)
 
 
 def topic_label(key: str) -> str:
     """Chat display name for a topic: icon + title, e.g. "🔁 Loop"."""
-    if key == MIXED_QUIZ_KEY:
-        return f"{MIXED_QUIZ_ICON} Quiz ទូទៅ"
     icon = TOPIC_ICONS.get(key)
     title = topic_title(key)
     return f"{icon} {title}" if icon else title
-
-
-def quiz_name(key: str) -> str:
-    """How a quiz is named in chat: "Quiz 🔁 Loop", or "🎯 Quiz ទូទៅ"
-    for the mixed quiz (which already has "Quiz" in its label)."""
-    return topic_label(key) if key == MIXED_QUIZ_KEY else f"Quiz {topic_label(key)}"
 
 
 def _normalize_name(text: str) -> str:
@@ -224,7 +205,6 @@ class LessonEngine:
             json.loads(quiz_path.read_text(encoding="utf-8"))
             if quiz_path.exists() else {}
         )
-        self._rng = random.Random()  # tests may replace it with a seeded one
         self._quiz_state: Optional[Dict[str, Any]] = None  # {"topic","index","score","total"}
         self.progress_path = progress_path
         self.progress: Set[str] = self._load_progress()
@@ -270,7 +250,10 @@ class LessonEngine:
         try:
             if self.quiz_history_path.exists():
                 data = json.loads(self.quiz_history_path.read_text(encoding="utf-8"))
-                return list(data.get("attempts", []))
+                # Keep only attempts for real lessons, so old or unknown
+                # entries (e.g. from a removed quiz) don't skew the stats.
+                return [a for a in data.get("attempts", [])
+                        if isinstance(a, dict) and a.get("topic") in TOPIC_ORDER]
         except (OSError, ValueError):
             pass
         return []
@@ -549,11 +532,10 @@ class LessonEngine:
         """Build the /progress card as Qt rich text (HTML), using the
         current theme's colors so it reads well in dark and light mode:
         a header with the overall %, a progress bar, three stat boxes,
-        one row per lesson (status, name, best quiz score), the mixed
-        quiz's best score, and a suggested next lesson."""
+        one row per lesson (status, name, best quiz score) and a
+        suggested next lesson."""
         c = C  # current theme palette (dark or light)
         s = self.report_summary()
-        best = s["best_by_topic"]
         done, total, pct = s["done"], s["total"], s["progress_pct"]
         green, amber, red = c["accent_green"], "#f59e0b", "#ef4444"
         muted, text, border = c["text_secondary"], c["text_primary"], c["border"]
@@ -604,23 +586,20 @@ class LessonEngine:
                  f'<td align="right" style="padding:4px; color:{muted};"><b>Quiz ល្អបំផុត</b></td></tr>'
                  + "".join(rows) + "</table>")
 
-        mixed = (f'<p style="margin-top:10px;">{html.escape(topic_label(MIXED_QUIZ_KEY))} '
-                 f'({MIXED_QUIZ_SIZE} សំណួរ) ល្អបំផុត: {score_html(best.get(MIXED_QUIZ_KEY))}</p>')
-
         next_key = next((k for k in TOPIC_ORDER if k not in self.progress), None)
         if next_key is None:
             nxt = (f'<p style="color:{green};"><b>🎉 អបអរសាទរ! អ្នករៀនចប់មេរៀនទាំង '
-                   f'{total} ហើយ។</b> សាកធ្វើ /quiz ដើម្បីពិនិត្យចំណេះដឹង។</p>')
+                   f'{total} ហើយ។</b> សាកធ្វើ /quiz list ដើម្បីពិនិត្យចំណេះដឹង។</p>')
         else:
-            nxt = (f'<p>👉 មេរៀនបន្ទាប់: <b>{TOPIC_ORDER.index(next_key) + 1}. '
+            nxt = (f'<p style="margin-top:10px;">👉 មេរៀនបន្ទាប់: <b>{TOPIC_ORDER.index(next_key) + 1}. '
                    f'{html.escape(topic_label(next_key))}</b></p>')
 
         tips = (f'<p style="color:{muted};">💡 វាយឈ្មោះ ឬចុចមេរៀននៅ Sidebar ដើម្បីរៀន · '
-                f'/quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ · /quiz 5 = Quiz មេរៀនទី 5</p>')
+                f'/quiz list = បញ្ជី Quiz · /quiz 5 = Quiz មេរៀនទី 5</p>')
 
         return (f'<p style="font-size:14pt;"><b>📊 វឌ្ឍនភាពការសិក្សា</b>'
                 f'&nbsp;&nbsp;<b style="color:{green};">{pct}%</b></p>'
-                + bar + stats + table + mixed + nxt + tips)
+                + bar + stats + table + nxt + tips)
 
     def get_response(self, user_input: str) -> str:
         """Route one chat message to a quiz answer, a quiz start, a progress report, a lesson lookup, or the fallback message."""
@@ -635,8 +614,13 @@ class LessonEngine:
             if lower in QUIZ_STOP_TRIGGERS:
                 state = self._quiz_state
                 self._quiz_state = None
-                return (f"🛑 បញ្ឈប់ {quiz_name(state['topic'])} ។ "
+                return (f"🛑 បញ្ឈប់ Quiz {topic_label(state['topic'])} ។ "
                         f"ពិន្ទុ: {state['score']}/{state['index']}")
+            # "/progress" mid-quiz shows progress and keeps the quiz going.
+            if lower == "/progress":
+                return (self._show_progress()
+                        + f'<p>📝 Quiz {html.escape(topic_label(self._quiz_state["topic"]))} '
+                          f'នៅបន្ត: សូមឆ្លើយ A, B, C ឬ D (ឬ /stop)</p>')
             # "/quiz <topic>" mid-quiz switches to that quiz instead of
             # being treated as an invalid answer.
             if quiz_arg is None or not text.startswith("/"):
@@ -736,73 +720,33 @@ class LessonEngine:
                          for num, key in enumerate(TOPIC_ORDER, start=1)
                          if key in self.quizzes)
 
-    def _mixed_questions(self) -> List[Tuple[str, Dict[str, Any]]]:
-        """Pick MIXED_QUIZ_SIZE questions across all lessons, shuffled.
-
-        Every lesson gets at least one question (when the size allows),
-        the remaining places are filled at random from what's left, and
-        the final order is shuffled so lessons are mixed together."""
-        pools = {k: list(self.quizzes[k]) for k in TOPIC_ORDER if self.quizzes.get(k)}
-        for qs in pools.values():
-            self._rng.shuffle(qs)
-
-        picked: List[Tuple[str, Dict[str, Any]]] = []
-        topics = list(pools)
-        self._rng.shuffle(topics)
-        for key in topics[:MIXED_QUIZ_SIZE]:          # one per lesson first
-            picked.append((key, pools[key].pop()))
-
-        rest = [(k, q) for k, qs in pools.items() for q in qs]
-        self._rng.shuffle(rest)
-        picked.extend(rest[:max(0, MIXED_QUIZ_SIZE - len(picked))])
-
-        self._rng.shuffle(picked)
-        return picked
-
     def _start_quiz(self, arg: str) -> str:
-        """Plain "/quiz" starts the mixed quiz (15 questions from every
-        lesson). "/quiz <lesson>" starts that lesson's quiz, and
-        "/quiz list" shows the per-lesson menu."""
-        if not arg or _normalize_name(arg) in MIXED_QUIZ_WORDS:
-            questions = self._mixed_questions()
-            if not questions:
-                return "❌ មិនទាន់មាន Quiz ទេ។"
-            self._quiz_state = {"topic": MIXED_QUIZ_KEY, "questions": questions,
-                                "index": 0, "score": 0, "total": len(questions)}
-            return (f"💡 {len(questions)} សំណួរ ពីមេរៀនទាំងអស់ · "
-                    f"ចង់ធ្វើតាមមេរៀនមួយៗ វាយ /quiz list\n\n"
-                    f"{self._present_question()}")
-        if _normalize_name(arg) in QUIZ_LIST_WORDS:
+        """"/quiz <lesson>" starts that lesson's quiz. Plain "/quiz" or
+        "/quiz list" shows the numbered list of lesson quizzes."""
+        if not arg or _normalize_name(arg) in QUIZ_LIST_WORDS:
             return (f"📝 Quiz តាមមេរៀន: វាយ /quiz និងលេខ ឬឈ្មោះមេរៀន\n\n"
                     f"{self._quiz_menu()}\n\n"
-                    f"ឧ. /quiz 5 ឬ /quiz loop  ·  /quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ")
+                    f"ឧ. /quiz 5 ឬ /quiz loop")
         topic = self._resolve_quiz_topic(arg)
         if topic is None:
             return (f"❌ គ្មាន Quiz សម្រាប់ '{arg[:40]}' ទេ។ "
                     f"សូមជ្រើសរើសពីបញ្ជីនេះ:\n\n{self._quiz_menu()}\n\n"
                     f"ឧ. /quiz 5 ឬ /quiz loop")
-        questions = [(topic, q) for q in self.quizzes[topic]]
-        self._quiz_state = {"topic": topic, "questions": questions,
-                            "index": 0, "score": 0, "total": len(questions)}
+        self._quiz_state = {"topic": topic, "questions": list(self.quizzes[topic]),
+                            "index": 0, "score": 0,
+                            "total": len(self.quizzes[topic])}
         return self._present_question()
 
     def _present_question(self) -> str:
         """Format the current quiz question with its lettered answer options."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
-        q_topic, q = state["questions"][state["index"]]
+        q = state["questions"][state["index"]]
         options_text = "\n".join(
             f"  {chr(65 + i)}. {opt}" for i, opt in enumerate(q["options"])
         )
-        # The mixed quiz names each question's lesson, since they change.
-        if state["topic"] == MIXED_QUIZ_KEY:
-            header = topic_label(MIXED_QUIZ_KEY)
-            where = f"  ·  {topic_label(q_topic)}"
-        else:
-            header = f"📝 Quiz: {topic_label(state['topic'])}"
-            where = ""
-        return (f"{header}\n"
-                f"❓ សំណួរ {state['index'] + 1}/{state['total']}{where}\n\n"
+        return (f"📝 Quiz: {topic_label(state['topic'])}\n"
+                f"❓ សំណួរ {state['index'] + 1}/{state['total']}\n\n"
                 f"{q['question']}\n\n{options_text}\n\n"
                 f"សូមឆ្លើយ A, B, C ឬ D (វាយ /stop ដើម្បីបញ្ឈប់)")
 
@@ -810,7 +754,7 @@ class LessonEngine:
         """Score the given answer against the current quiz question, then advance to the next question or finish the quiz."""
         state = self._quiz_state
         assert state is not None  # only called while a quiz is active
-        _, q = state["questions"][state["index"]]
+        q = state["questions"][state["index"]]
         answer = text.strip().upper()
         letters = tuple(chr(65 + i) for i in range(len(q["options"])))
         # Only a single option letter counts as an answer. Anything else
@@ -836,7 +780,7 @@ class LessonEngine:
             self._record_quiz_attempt(state["topic"], score, total)
             self._quiz_state = None
             return (f"{feedback}\n{explain}\n\n"
-                    f"🎉 {quiz_name(state['topic'])} បញ្ចប់! "
+                    f"🎉 Quiz {topic_label(state['topic'])} បញ្ចប់! "
                     f"ពិន្ទុ: {score}/{total}")
 
         return f"{feedback}\n{explain}\n\n{self._present_question()}"

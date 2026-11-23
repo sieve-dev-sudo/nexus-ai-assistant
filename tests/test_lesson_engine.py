@@ -5,7 +5,6 @@ Covers topic lookup (incl. the oop/loop keyword-collision regression),
 Quiz mode's state machine, and Progress tracking's persistence.
 """
 import json
-import random
 import tempfile
 from pathlib import Path
 
@@ -13,7 +12,6 @@ import pytest
 
 from LessonCodePython.lesson_engine import (
     LessonEngine, TOPIC_ORDER, TOPIC_TITLES, TOPIC_ICONS, topic_label,
-    MIXED_QUIZ_KEY, MIXED_QUIZ_SIZE,
 )
 from LessonCodePython.theme import C
 
@@ -69,7 +67,7 @@ def test_unknown_input_falls_back_gracefully(engine):
 
 
 # ── Quiz mode ─────────────────────────────────────────────────────────────
-@pytest.mark.parametrize("command", ["/quiz list", "/quiz topics", "/quiz ?"])
+@pytest.mark.parametrize("command", ["/quiz", "quiz", "/quiz list", "/quiz topics", "/quiz ?"])
 def test_quiz_list_shows_every_lesson(engine, command):
     result = engine.get_response(command)
     assert "1. 🔰 Basic Python" in result
@@ -87,14 +85,14 @@ def test_quiz_correct_answer_increments_score(engine):
     engine.get_response("/quiz basic")
     result = engine.get_response("B")  # basic Q1: answer index 1 = B
     assert "ត្រឹមត្រូវ" in result
-    assert "សំណួរ 2/3" in result  # advances to the next question
+    assert "សំណួរ 2/5" in result  # advances to the next question
 
 
 def test_quiz_wrong_answer_shows_correct_one(engine):
     engine.get_response("/quiz basic")
     result = engine.get_response("A")  # basic Q1 answer is B -> wrong
     assert "មិនត្រឹមត្រូវ" in result
-    assert "សំណួរ 2/3" in result
+    assert "សំណួរ 2/5" in result
 
 
 @pytest.mark.parametrize("bad", ["Z", "E", "hello", "AB", ""])
@@ -104,18 +102,16 @@ def test_quiz_invalid_answer_asks_again(engine, bad):
     engine.get_response("/quiz basic")
     result = engine.get_response(bad)
     assert "សូមឆ្លើយតែអក្សរ" in result
-    assert "សំណួរ 1/3" in result
+    assert "សំណួរ 1/5" in result
     # The quiz is still on Q1, so a correct answer now still scores.
-    assert "សំណួរ 2/3" in engine.get_response("B")
+    assert "សំណួរ 2/5" in engine.get_response("B")
 
 
 def test_quiz_completes_with_final_score(engine):
     engine.get_response("/quiz basic")
-    engine.get_response("B")  # Q1 correct
-    engine.get_response("B")  # Q2 correct
-    result = engine.get_response("A")  # Q3 correct
+    result = _answer_all(engine, correct=True)
     assert "Quiz 🔰 Basic Python បញ្ចប់" in result
-    assert "3/3" in result
+    assert "5/5" in result
 
 
 def test_quiz_stop_mid_quiz(engine):
@@ -131,9 +127,7 @@ def test_quiz_unknown_topic(engine):
 
 def test_quiz_state_does_not_leak_into_next_lookup(engine):
     engine.get_response("/quiz basic")
-    engine.get_response("B")  # Q1
-    engine.get_response("B")  # Q2
-    engine.get_response("A")  # Q3 — quiz finishes
+    _answer_all(engine)  # quiz finishes
     result = engine.get_response("loop")
     assert "Loop" in result
 
@@ -191,14 +185,12 @@ def test_keyword_match_also_marks_progress(engine):
 # ── Quiz history + export report ──────────────────────────────────────────
 def test_completing_a_quiz_records_history(engine):
     engine.get_response("/quiz basic")
-    engine.get_response("B")
-    engine.get_response("B")
-    engine.get_response("A")  # finishes the 3-question quiz
+    _answer_all(engine, correct=True)  # finishes the 5-question quiz
     assert len(engine.quiz_history) == 1
     attempt = engine.quiz_history[0]
     assert attempt["topic"] == "basic"
-    assert attempt["score"] == 3
-    assert attempt["total"] == 3
+    assert attempt["score"] == 5
+    assert attempt["total"] == 5
 
 
 def test_stopping_a_quiz_early_does_not_record_history(engine):
@@ -212,9 +204,7 @@ def test_quiz_history_persists_across_engine_instances():
     tmp = Path(tempfile.mkdtemp())
     e1 = LessonEngine(progress_path=tmp / "p.json", quiz_history_path=tmp / "qh.json")
     e1.get_response("/quiz basic")
-    e1.get_response("B")
-    e1.get_response("B")
-    e1.get_response("A")
+    _answer_all(e1)
 
     e2 = LessonEngine(progress_path=tmp / "p.json", quiz_history_path=tmp / "qh.json")
     assert len(e2.quiz_history) == 1
@@ -224,9 +214,7 @@ def test_quiz_history_persists_across_engine_instances():
 def test_export_report_writes_csv(engine, tmp_path):
     engine.get_response("basic")  # marks progress
     engine.get_response("/quiz loop")
-    engine.get_response("B")
-    engine.get_response("B")
-    engine.get_response("A")  # completes a quiz -> history entry
+    _answer_all(engine, correct=True)  # completes a quiz -> history entry
 
     out = tmp_path / "report.csv"
     ok = engine.export_report(str(out))
@@ -236,7 +224,7 @@ def test_export_report_writes_csv(engine, tmp_path):
     assert "basic,Yes" in content
     assert "=== Quiz History ===" in content
     assert "loop" in content
-    assert "3" in content  # score
+    assert ",5,5" in content  # score,total
 
 
 def test_export_report_handles_bad_path_gracefully(engine):
@@ -287,8 +275,7 @@ def test_progress_shows_labels_not_raw_keys(engine):
 
 def test_progress_shows_best_quiz_score(engine):
     engine.get_response("/quiz basic")
-    for answer in "BBA":   # all 3 correct
-        engine.get_response(answer)
+    _answer_all(engine, correct=True)
     rows = {r["key"]: r for r in engine.progress_rows()}
     assert rows["basic"]["best"] == 100
     assert rows["loop"]["best"] is None
@@ -350,87 +337,16 @@ def test_typing_a_lesson_name_opens_it(engine, text, topic):
     assert engine.get_response(text) == engine._render(engine.lessons[topic])
 
 
-# ── Plain /quiz: one mixed quiz from every lesson ────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────────
 def _answer_all(engine, correct=True):
     """Answer every remaining question (right or wrong); return the last reply."""
     reply = ""
     while engine._quiz_state is not None:
-        _, q = engine._quiz_state["questions"][engine._quiz_state["index"]]
+        q = engine._quiz_state["questions"][engine._quiz_state["index"]]
         right = "ABCD"[q["answer"]]
         wrong = "ABCD"[(q["answer"] + 1) % len(q["options"])]
         reply = engine.get_response(right if correct else wrong)
     return reply
-
-
-@pytest.mark.parametrize("command", ["/quiz", "quiz", "/quiz all", "/quiz ទាំងអស់"])
-def test_plain_quiz_starts_mixed_quiz(engine, command):
-    result = engine.get_response(command)
-    assert "🎯 Quiz ទូទៅ" in result
-    assert f"សំណួរ 1/{MIXED_QUIZ_SIZE}" in result
-
-
-@pytest.mark.parametrize("seed", range(20))
-def test_mixed_quiz_has_15_unique_questions_from_every_lesson(engine, seed):
-    engine._rng = random.Random(seed)
-    engine.get_response("/quiz")
-    questions = engine._quiz_state["questions"]
-    assert len(questions) == MIXED_QUIZ_SIZE == 15
-    assert {t for t, _ in questions} == set(TOPIC_ORDER)       # all 11 lessons
-    assert len({q["question"] for _, q in questions}) == 15     # no repeats
-
-
-def test_mixed_quiz_order_changes_between_runs(engine):
-    engine._rng = random.Random(1)
-    engine.get_response("/quiz"); first = engine._quiz_state["questions"]
-    engine.get_response("/stop")
-    engine.get_response("/quiz"); second = engine._quiz_state["questions"]
-    assert first != second
-
-
-def test_mixed_quiz_names_each_questions_lesson(engine):
-    result = engine.get_response("/quiz")
-    first_topic, _ = engine._quiz_state["questions"][0]
-    assert f"សំណួរ 1/15  ·  {topic_label(first_topic)}" in result
-
-
-def test_mixed_quiz_full_score_and_history(engine):
-    engine.get_response("/quiz")
-    result = _answer_all(engine, correct=True)
-    assert "🎉 🎯 Quiz ទូទៅ បញ្ចប់" in result
-    assert "15/15" in result
-    attempt = engine.quiz_history[-1]
-    assert (attempt["topic"], attempt["score"], attempt["total"]) == (MIXED_QUIZ_KEY, 15, 15)
-
-
-def test_mixed_quiz_best_score_shown_in_progress(engine):
-    engine.get_response("/quiz")
-    _answer_all(engine, correct=False)
-    engine.get_response("/quiz")
-    _answer_all(engine, correct=True)
-    result = engine.get_response("/progress")
-    assert "🎯 Quiz ទូទៅ" in result and ">100%<" in result
-
-
-def test_mixed_quiz_stop(engine):
-    engine.get_response("/quiz")
-    engine.get_response("A")
-    result = engine.get_response("/stop")
-    assert "🎯 Quiz ទូទៅ" in result and "/1" in result
-    assert engine.quiz_history == []
-
-
-def test_mixed_quiz_in_pdf_report(engine):
-    engine.get_response("/quiz")
-    _answer_all(engine)
-    assert "General Quiz (All Topics)" in engine.build_report_html()
-
-
-def test_lesson_quiz_still_works_after_mixed(engine):
-    engine.get_response("/quiz")
-    engine.get_response("/stop")
-    result = engine.get_response("/quiz 5")
-    assert result.startswith("📝 Quiz: 🔁 Loop")
-    assert "សំណួរ 1/3" in result
 
 
 # ── /progress card ───────────────────────────────────────────────────────
@@ -466,21 +382,65 @@ def test_progress_card_congratulates_when_all_done(engine):
 
 def test_progress_card_stats(engine):
     engine.get_response("/quiz basic")
-    for answer in "BBA":   # 3/3
-        engine.get_response(answer)
+    _answer_all(engine, correct=True)    # 100%
     engine.get_response("/quiz loop")
-    for answer in "AAA":   # some score; the average covers both quizzes
-        engine.get_response(answer)
+    _answer_all(engine, correct=False)   # 0%
     s = engine.report_summary()
+    assert (s["quizzes_taken"], s["average_pct"]) == (2, 50)
     result = engine.get_response("/progress")
     assert f">{s['quizzes_taken']}<" in result
     assert f">{s['average_pct']}%<" in result
 
 
-@pytest.mark.parametrize("pct, color_key", [(100, "green"), (67, "amber"), (33, "red")])
+@pytest.mark.parametrize("pct, color_key", [(100, "green"), (60, "amber"), (40, "red")])
 def test_progress_score_colors(engine, pct, color_key):
     engine.quiz_history = [{"timestamp": "x", "topic": "basic",
-                            "score": round(pct * 3 / 100), "total": 3}]
+                            "score": round(pct * 5 / 100), "total": 5}]
     result = engine.get_response("/progress")
     color = {"green": C["accent_green"], "amber": "#f59e0b", "red": "#ef4444"}[color_key]
     assert f'<b style="color:{color};">{pct}%</b>' in result
+
+
+# ── Quiz content: 5 questions per lesson ─────────────────────────────────
+@pytest.mark.parametrize("topic", TOPIC_ORDER)
+def test_every_lesson_has_5_valid_questions(engine, topic):
+    questions = engine.quizzes[topic]
+    assert len(questions) == 5
+    for q in questions:
+        assert q["question"].strip() and q["explain"].strip()
+        assert len(q["options"]) == 4
+        assert len(set(q["options"])) == 4           # no duplicate options
+        assert 0 <= q["answer"] < 4
+
+
+def test_no_question_is_repeated():
+    texts = [q["question"] for qs in LessonEngine().quizzes.values() for q in qs]
+    assert len(texts) == len(set(texts))
+
+
+@pytest.mark.parametrize("topic", TOPIC_ORDER)
+def test_every_lesson_quiz_can_be_completed(engine, topic):
+    engine.get_response(f"/quiz {topic}")
+    assert "សំណួរ 1/5" in engine._present_question()
+    assert "ពិន្ទុ: 5/5" in _answer_all(engine, correct=True)
+
+
+def test_old_mixed_quiz_history_is_ignored(tmp_path):
+    """History saved by the removed 15-question quiz (topic "all") is
+    dropped on load, so it can't skew the progress stats."""
+    path = tmp_path / "qh.json"
+    path.write_text(json.dumps({"attempts": [
+        {"timestamp": "x", "topic": "all", "score": 15, "total": 15},
+        {"timestamp": "y", "topic": "loop", "score": 2, "total": 5},
+    ]}), encoding="utf-8")
+    e = LessonEngine(progress_path=tmp_path / "p.json", quiz_history_path=path)
+    assert [a["topic"] for a in e.quiz_history] == ["loop"]
+    assert e.report_summary()["quizzes_taken"] == 1
+
+
+def test_progress_mid_quiz_keeps_quiz_going(engine):
+    engine.get_response("/quiz loop")
+    result = engine.get_response("/progress")
+    assert "វឌ្ឍនភាពការសិក្សា" in result and "នៅបន្ត" in result
+    assert engine._quiz_state["index"] == 0          # nothing skipped
+    assert "សំណួរ 2/5" in engine.get_response("C")    # loop Q1 answer is C
