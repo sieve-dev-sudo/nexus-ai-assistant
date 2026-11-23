@@ -15,6 +15,7 @@ from LessonCodePython.lesson_engine import (
     LessonEngine, TOPIC_ORDER, TOPIC_TITLES, TOPIC_ICONS, topic_label,
     MIXED_QUIZ_KEY, MIXED_QUIZ_SIZE,
 )
+from LessonCodePython.theme import C
 
 
 @pytest.fixture
@@ -155,8 +156,10 @@ def test_progress_starts_empty(engine):
 
 def test_viewing_a_topic_marks_it_complete(engine):
     engine.get_response("basic")
-    result = engine.get_response("/progress")
-    assert "✅ 1. 🔰 Basic Python" in result
+    rows = {r["key"]: r for r in engine.progress_rows()}
+    assert rows["basic"]["done"] is True
+    assert rows["loop"]["done"] is False
+    assert "1/11" in engine.get_response("/progress")
 
 
 def test_progress_persists_across_engine_instances():
@@ -167,8 +170,8 @@ def test_progress_persists_across_engine_instances():
 
     e2 = LessonEngine(progress_path=progress_path)
     result = e2.get_response("/progress")
-    assert "✅ 1. 🔰 Basic Python" in result
-    assert "✅ 5. 🔁 Loop" in result
+    done = {r["key"] for r in e2.progress_rows() if r["done"]}
+    assert done == {"basic", "loop"}
     assert "2/11" in result
 
 
@@ -182,8 +185,7 @@ def test_progress_file_is_valid_json_on_disk():
 
 def test_keyword_match_also_marks_progress(engine):
     engine.get_response("explain for loop")  # keyword match, not exact key
-    result = engine.get_response("/progress")
-    assert "✅ 5. 🔁 Loop" in result
+    assert {r["key"] for r in engine.progress_rows() if r["done"]} == {"loop"}
 
 
 # ── Quiz history + export report ──────────────────────────────────────────
@@ -279,14 +281,18 @@ def test_start_menu_lists_every_topic_by_label(engine):
 def test_progress_shows_labels_not_raw_keys(engine):
     result = engine.get_response("/progress")
     assert "functions_advanced" not in result
-    assert "9. 🔧 Functions Advanced" in result
+    assert "🔧 Functions Advanced" in result
+    assert ">9.<" in result
 
 
 def test_progress_shows_best_quiz_score(engine):
     engine.get_response("/quiz basic")
     for answer in "BBA":   # all 3 correct
         engine.get_response(answer)
-    assert "1. 🔰 Basic Python  ·  Quiz 100%" in engine.get_response("/progress")
+    rows = {r["key"]: r for r in engine.progress_rows()}
+    assert rows["basic"]["best"] == 100
+    assert rows["loop"]["best"] is None
+    assert ">100%<" in engine.get_response("/progress")
 
 
 def test_quiz_header_uses_label(engine):
@@ -401,7 +407,8 @@ def test_mixed_quiz_best_score_shown_in_progress(engine):
     _answer_all(engine, correct=False)
     engine.get_response("/quiz")
     _answer_all(engine, correct=True)
-    assert "🎯 Quiz ទូទៅ: ល្អបំផុត 100%" in engine.get_response("/progress")
+    result = engine.get_response("/progress")
+    assert "🎯 Quiz ទូទៅ" in result and ">100%<" in result
 
 
 def test_mixed_quiz_stop(engine):
@@ -424,3 +431,56 @@ def test_lesson_quiz_still_works_after_mixed(engine):
     result = engine.get_response("/quiz 5")
     assert result.startswith("📝 Quiz: 🔁 Loop")
     assert "សំណួរ 1/3" in result
+
+
+# ── /progress card ───────────────────────────────────────────────────────
+def test_progress_rows_follow_topic_order(engine):
+    rows = engine.progress_rows()
+    assert [r["key"] for r in rows] == TOPIC_ORDER
+    assert [r["num"] for r in rows] == list(range(1, 12))
+    assert all(r["label"] == topic_label(r["key"]) for r in rows)
+
+
+def test_progress_card_is_rich_text_with_every_lesson(engine):
+    result = engine.get_response("/progress")
+    assert result.startswith("<p")                  # rendered as HTML by Qt
+    assert "Variables &amp; Data Types" in result   # "&" escaped
+    for row in engine.progress_rows():
+        assert f">{row['num']}.<" in result
+
+
+def test_progress_card_suggests_next_lesson(engine):
+    engine.get_response("basic")
+    engine.get_response("variables")
+    assert "មេរៀនបន្ទាប់: <b>3. 🔢 Operators</b>" in engine.get_response("/progress")
+
+
+def test_progress_card_congratulates_when_all_done(engine):
+    for key in TOPIC_ORDER:
+        engine.get_response(key)
+    result = engine.get_response("/progress")
+    assert "11/11" in result and "100%" in result
+    assert "អបអរសាទរ" in result
+    assert "មេរៀនបន្ទាប់" not in result
+
+
+def test_progress_card_stats(engine):
+    engine.get_response("/quiz basic")
+    for answer in "BBA":   # 3/3
+        engine.get_response(answer)
+    engine.get_response("/quiz loop")
+    for answer in "AAA":   # some score; the average covers both quizzes
+        engine.get_response(answer)
+    s = engine.report_summary()
+    result = engine.get_response("/progress")
+    assert f">{s['quizzes_taken']}<" in result
+    assert f">{s['average_pct']}%<" in result
+
+
+@pytest.mark.parametrize("pct, color_key", [(100, "green"), (67, "amber"), (33, "red")])
+def test_progress_score_colors(engine, pct, color_key):
+    engine.quiz_history = [{"timestamp": "x", "topic": "basic",
+                            "score": round(pct * 3 / 100), "total": 3}]
+    result = engine.get_response("/progress")
+    color = {"green": C["accent_green"], "amber": "#f59e0b", "red": "#ef4444"}[color_key]
+    assert f'<b style="color:{color};">{pct}%</b>' in result

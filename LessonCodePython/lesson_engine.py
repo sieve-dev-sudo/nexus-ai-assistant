@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Any, Pattern, Tuple
 
+from LessonCodePython.theme import C
+
 LESSONS_PATH = Path(__file__).resolve().parent / "lessons.json"
 QUIZ_PATH = Path(__file__).resolve().parent / "quizzes.json"
 PROGRESS_PATH = Path.home() / ".nexus_ai" / "progress.json"
@@ -534,27 +536,91 @@ class LessonEngine:
 </tr></table>
 </body></html>"""
 
-    def _show_progress(self) -> str:
-        """Build the progress checklist: a numbered line per topic with
-        its ✅/⬜ mark, the same name as everywhere else, and the best
-        quiz score if that topic's quiz was taken."""
+    def progress_rows(self) -> List[Dict[str, Any]]:
+        """One entry per lesson, in TOPIC_ORDER: its number, key, chat
+        label, whether it's been studied, and its best quiz % (or None).
+        The /progress card is drawn from this list."""
         best = self.report_summary()["best_by_topic"]
-        lines = []
-        for num, key in enumerate(TOPIC_ORDER, start=1):
-            mark = "✅" if key in self.progress else "⬜"
-            line = f"  {mark} {num}. {topic_label(key)}"
-            if key in best:
-                line += f"  ·  Quiz {best[key]}%"
-            lines.append(line)
-        done = len(self.progress & set(TOPIC_ORDER))
-        total = len(TOPIC_ORDER)
-        pct = round(done / total * 100) if total else 0
-        if MIXED_QUIZ_KEY in best:
-            lines.append(f"\n  {topic_label(MIXED_QUIZ_KEY)}: ល្អបំផុត {best[MIXED_QUIZ_KEY]}%")
-        return (f"📊 វឌ្ឍនភាពការសិក្សា: {done}/{total} ({pct}%)\n\n"
-                + "\n".join(lines)
-                + f"\n\n💡 វាយឈ្មោះមេរៀនដើម្បីរៀន · /quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ "
-                  "· /quiz 5 = Quiz មេរៀនទី 5")
+        return [{"num": num, "key": key, "label": topic_label(key),
+                 "done": key in self.progress, "best": best.get(key)}
+                for num, key in enumerate(TOPIC_ORDER, start=1)]
+
+    def _show_progress(self) -> str:
+        """Build the /progress card as Qt rich text (HTML), using the
+        current theme's colors so it reads well in dark and light mode:
+        a header with the overall %, a progress bar, three stat boxes,
+        one row per lesson (status, name, best quiz score), the mixed
+        quiz's best score, and a suggested next lesson."""
+        c = C  # current theme palette (dark or light)
+        s = self.report_summary()
+        best = s["best_by_topic"]
+        done, total, pct = s["done"], s["total"], s["progress_pct"]
+        green, amber, red = c["accent_green"], "#f59e0b", "#ef4444"
+        muted, text, border = c["text_secondary"], c["text_primary"], c["border"]
+
+        def score_html(value: Optional[int]) -> str:
+            if value is None:
+                return f'<span style="color:{muted};">–</span>'
+            color = green if value >= 80 else amber if value >= 50 else red
+            return f'<b style="color:{color};">{value}%</b>'
+
+        # Progress bar: two table cells whose widths add up to 100%.
+        fill = max(pct, 0)
+        bar_cells = ""
+        if fill > 0:
+            bar_cells += f'<td width="{fill}%" bgcolor="{green}" style="font-size:4pt;">&nbsp;</td>'
+        if fill < 100:
+            bar_cells += f'<td width="{100 - fill}%" bgcolor="{border}" style="font-size:4pt;">&nbsp;</td>'
+        bar = (f'<table width="100%" cellspacing="0" cellpadding="0">'
+               f'<tr>{bar_cells}</tr></table>')
+
+        def stat(value: str, label: str) -> str:
+            return (f'<td align="center" width="33%" bgcolor="{c["bg_main"]}" style="padding:8px;">'
+                    f'<span style="font-size:15pt; font-weight:700; color:{text};">{value}</span><br>'
+                    f'<span style="color:{muted};">{label}</span></td>')
+
+        avg = s["average_pct"]
+        stats = ('<table width="100%" cellspacing="8" cellpadding="0" style="margin-top:6px;"><tr>'
+                 + stat(f"{done}/{total}", "មេរៀនរៀនរួច")
+                 + stat(str(s["quizzes_taken"]), "Quiz បានធ្វើ")
+                 + stat(f"{avg}%" if avg is not None else "–", "ពិន្ទុមធ្យម")
+                 + "</tr></table>")
+
+        rows = []
+        for row in self.progress_rows():
+            mark = (f'<span style="color:{green};">✔</span>' if row["done"]
+                    else f'<span style="color:{muted};">○</span>')
+            name_color = text if row["done"] else muted
+            rows.append(
+                f'<tr>'
+                f'<td width="28" style="padding:5px 4px;">{mark}</td>'
+                f'<td width="28" align="right" style="padding:5px 6px; color:{muted};">{row["num"]}.</td>'
+                f'<td style="padding:5px 4px; color:{name_color};">'
+                f'{html.escape(row["label"])}</td>'
+                f'<td align="right" style="padding:5px 4px;">{score_html(row["best"])}</td>'
+                f'</tr>')
+        table = (f'<table width="100%" cellspacing="0" cellpadding="0">'
+                 f'<tr><td colspan="3" style="padding:4px; color:{muted};"><b>មេរៀន</b></td>'
+                 f'<td align="right" style="padding:4px; color:{muted};"><b>Quiz ល្អបំផុត</b></td></tr>'
+                 + "".join(rows) + "</table>")
+
+        mixed = (f'<p style="margin-top:10px;">{html.escape(topic_label(MIXED_QUIZ_KEY))} '
+                 f'({MIXED_QUIZ_SIZE} សំណួរ) ល្អបំផុត: {score_html(best.get(MIXED_QUIZ_KEY))}</p>')
+
+        next_key = next((k for k in TOPIC_ORDER if k not in self.progress), None)
+        if next_key is None:
+            nxt = (f'<p style="color:{green};"><b>🎉 អបអរសាទរ! អ្នករៀនចប់មេរៀនទាំង '
+                   f'{total} ហើយ។</b> សាកធ្វើ /quiz ដើម្បីពិនិត្យចំណេះដឹង។</p>')
+        else:
+            nxt = (f'<p>👉 មេរៀនបន្ទាប់: <b>{TOPIC_ORDER.index(next_key) + 1}. '
+                   f'{html.escape(topic_label(next_key))}</b></p>')
+
+        tips = (f'<p style="color:{muted};">💡 វាយឈ្មោះ ឬចុចមេរៀននៅ Sidebar ដើម្បីរៀន · '
+                f'/quiz = Quiz ទូទៅ {MIXED_QUIZ_SIZE} សំណួរ · /quiz 5 = Quiz មេរៀនទី 5</p>')
+
+        return (f'<p style="font-size:14pt;"><b>📊 វឌ្ឍនភាពការសិក្សា</b>'
+                f'&nbsp;&nbsp;<b style="color:{green};">{pct}%</b></p>'
+                + bar + stats + table + mixed + nxt + tips)
 
     def get_response(self, user_input: str) -> str:
         """Route one chat message to a quiz answer, a quiz start, a progress report, a lesson lookup, or the fallback message."""
