@@ -150,33 +150,19 @@ class Sidebar(QWidget):
 
         # Action buttons: always visible, bottom of sidebar
         root.addWidget(self._hr())
-        clear_btn = QPushButton("🗑️  Clear Chat")
-        clear_btn.setCursor(Qt.PointingHandCursor)
-        clear_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        clear_btn.setStyleSheet(self._inactive_style())
-        clear_btn.clicked.connect(self.clear_chat_requested.emit)
-        root.addWidget(clear_btn)
-
-        reset_btn = QPushButton("🔄  Reset Progress")
-        reset_btn.setCursor(Qt.PointingHandCursor)
-        reset_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        reset_btn.setStyleSheet(self._inactive_style())
-        reset_btn.clicked.connect(self.reset_progress_requested.emit)
-        root.addWidget(reset_btn)
-
-        settings_btn = QPushButton("⚙️  Settings")
-        settings_btn.setCursor(Qt.PointingHandCursor)
-        settings_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        settings_btn.setStyleSheet(self._inactive_style())
-        settings_btn.clicked.connect(self.settings_requested.emit)
-        root.addWidget(settings_btn)
-
-        export_report_btn = QPushButton("📑  Export Report")
-        export_report_btn.setCursor(Qt.PointingHandCursor)
-        export_report_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        export_report_btn.setStyleSheet(self._inactive_style())
-        export_report_btn.clicked.connect(self.export_report_requested.emit)
-        root.addWidget(export_report_btn)
+        # Order: Settings, Clear Chat, Export Report, Reset Progress, About
+        for label, signal in (
+            ("⚙️  Settings", self.settings_requested),
+            ("🗑️  Clear Chat", self.clear_chat_requested),
+            ("📑  Export Report", self.export_report_requested),
+            ("🔄  Reset Progress", self.reset_progress_requested),
+        ):
+            btn = QPushButton(label)
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            btn.setStyleSheet(self._inactive_style())
+            btn.clicked.connect(signal.emit)
+            root.addWidget(btn)
 
         about_btn = QPushButton(" ℹ️  About")
         about_btn.setCursor(Qt.PointingHandCursor)
