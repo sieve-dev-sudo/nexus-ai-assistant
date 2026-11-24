@@ -150,13 +150,6 @@ class Sidebar(QWidget):
 
         # Action buttons: always visible, bottom of sidebar
         root.addWidget(self._hr())
-        export_report_btn = QPushButton("📑  Export Report")
-        export_report_btn.setCursor(Qt.PointingHandCursor)
-        export_report_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        export_report_btn.setStyleSheet(self._inactive_style())
-        export_report_btn.clicked.connect(self.export_report_requested.emit)
-        root.addWidget(export_report_btn)
-
         clear_btn = QPushButton("🗑️  Clear Chat")
         clear_btn.setCursor(Qt.PointingHandCursor)
         clear_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -177,6 +170,13 @@ class Sidebar(QWidget):
         settings_btn.setStyleSheet(self._inactive_style())
         settings_btn.clicked.connect(self.settings_requested.emit)
         root.addWidget(settings_btn)
+
+        export_report_btn = QPushButton("📑  Export Report")
+        export_report_btn.setCursor(Qt.PointingHandCursor)
+        export_report_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        export_report_btn.setStyleSheet(self._inactive_style())
+        export_report_btn.clicked.connect(self.export_report_requested.emit)
+        root.addWidget(export_report_btn)
 
         about_btn = QPushButton(" ℹ️  About")
         about_btn.setCursor(Qt.PointingHandCursor)
