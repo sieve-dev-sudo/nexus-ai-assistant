@@ -23,7 +23,7 @@ class AboutDialog(QDialog):
         # Drop the title-bar "?" context-help button (Windows adds it by
         # default to QDialog; it does nothing useful here).
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.setFixedWidth(380)
+        self.setFixedWidth(560)  # wider than tall content, so the card breathes
         self.setStyleSheet(f"background:{C['bg_main']}; color:{C['text_primary']};")
         self._build()
         # Let the dialog's height follow its content's natural size
