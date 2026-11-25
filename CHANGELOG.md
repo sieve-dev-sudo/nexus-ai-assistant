@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
-## [Unreleased]
+## [1.3.0] - November 25, 2026
 
 ### Added
 - Export Report as a styled A4 PDF (summary cards, progress bar, a
@@ -45,6 +45,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
   instead of counting as wrong and skipping ahead
 
 ### Fixed
+- Fix Code Output now follows the order the `print()` calls are
+  written in; prints inside `if` / `for` / `def` blocks used to be
+  listed after all the top-level prints
 - App crash ("QThread: Destroyed while thread is still running") when a
   sidebar topic was clicked again before the previous reply finished
 - Fix Code froze forever on huge numbers like `10**10**10` or
