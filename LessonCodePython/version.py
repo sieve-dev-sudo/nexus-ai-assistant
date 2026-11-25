@@ -8,4 +8,4 @@ imports ui.main_window, which would otherwise need to import back
 from main.py).
 """
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
