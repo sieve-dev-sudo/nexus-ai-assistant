@@ -940,9 +940,12 @@ def _compute_output(code: str) -> List[str]:
         return []
     env: Dict[str, Any] = {}
     _collect_vars(tree, env)
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Expr):
-            continue
+    # ast.walk() goes level by level (breadth-first), which put every
+    # top-level print() before the ones nested in if/for/def blocks.
+    # Sorting by position keeps the prints in the order they're written.
+    exprs = sorted((n for n in ast.walk(tree) if isinstance(n, ast.Expr)),
+                   key=lambda n: (n.lineno, n.col_offset))
+    for node in exprs:
         call = node.value
         if not (isinstance(call, ast.Call) and _is_print(call)):
             continue
