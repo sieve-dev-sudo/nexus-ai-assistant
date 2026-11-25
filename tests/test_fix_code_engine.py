@@ -435,3 +435,18 @@ def test_huge_values_do_not_hang(code):
 def test_normal_power_still_evaluated():
     result = FixCodeEngine().get_response("print(2**10)")
     assert "1024" in result
+
+
+# ── Output keeps the order the prints are written in ────────────────────
+@pytest.mark.parametrize("code, expected", [
+    # print inside an if used to come after the top-level print
+    ('x = 5\nif x == 5:\n    print("Hi")\nprint("Done")', "Hi\nDone"),
+    # several nesting levels
+    ('print("A")\nfor i in range(1):\n    print("B")\n    if True:\n'
+     '        print("C")\nprint("D")', "A\nB\nC\nD"),
+    # two prints on the same line
+    ('print("A"); print("B")', "A\nB"),
+])
+def test_output_follows_source_order(code, expected):
+    result = FixCodeEngine().get_response(code)
+    assert f"📤 Output:\n```\n{expected}\n```" in result
