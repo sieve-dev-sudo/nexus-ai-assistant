@@ -104,10 +104,56 @@ def test_pdf_file_is_written(engine, tmp_path):
 
 
 def test_long_history_starts_on_new_page(engine):
-    """Up to 3 quizzes fit on page 1; more start Quiz History on page 2
-    so the table is never split with an empty band under the topic grid."""
-    for _ in range(3):
+    """Up to 4 quizzes fit on page 1; more start Quiz History on page 2
+    so the table is never split with an empty band under the topic table."""
+    assert engine.REPORT_HISTORY_ROWS_ON_PAGE_1 == 4
+    for _ in range(4):
         _add_attempt(engine, "loop", 2)
     assert "page-break-before:always" not in engine.build_report_html()
     _add_attempt(engine, "loop", 2)
     assert "page-break-before:always" in engine.build_report_html()
+
+
+def test_topic_table_has_one_row_per_topic(engine):
+    """Topic Progress is a table: # / Topic / Status / Best quiz."""
+    engine.progress = {"basic"}
+    _add_attempt(engine, "basic", 3)
+    out = engine.build_report_html()
+    for heading in ("#", "Topic", "Status", "Best quiz"):
+        assert f">{heading}</td>" in out
+    assert out.count("&nbsp;Done&nbsp;") == 1
+    assert out.count("&nbsp;To do&nbsp;") == len(TOPIC_ORDER) - 1
+    assert "&nbsp;100%&nbsp;" in out
+
+
+def test_header_has_no_solid_color_block(engine):
+    """The old full-width blue header showed white seams in some PDF
+    viewers; the header is now white with a thin accent line."""
+    out = engine.build_report_html()
+    header = out[:out.index("Topics done")]
+    assert 'cellpadding="16"' not in header
+    assert "Learning Report" in header
+
+
+@pytest.mark.parametrize("quizzes", [0, 4, 5, 20])
+def test_pdf_page_count(engine, tmp_path, quizzes):
+    """Page 1 holds header, summary, all topics and up to 4 quiz rows;
+    a longer history moves to page 2."""
+    pytest.importorskip("PyQt5")
+    import os
+    import re
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    from PyQt5.QtWidgets import QApplication
+    from ui.report_pdf import export_pdf
+
+    app = QApplication.instance() or QApplication([])  # keep a reference
+    assert app is not None
+    for _ in range(quizzes):
+        _add_attempt(engine, "loop", 2)
+    path = tmp_path / "report.pdf"
+    assert export_pdf(engine.build_report_html("1.3.0"), str(path))
+    pages = len(re.findall(rb"/Type\s*/Page[^s]", path.read_bytes()))
+    expected = 1 if quizzes <= engine.REPORT_HISTORY_ROWS_ON_PAGE_1 else 2
+    if quizzes == 20:
+        expected = 2  # 20 rows still fit on page 2
+    assert pages == expected
