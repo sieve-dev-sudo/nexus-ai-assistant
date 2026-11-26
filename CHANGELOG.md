@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 
+## [Unreleased]
+
+### Changed
+- PDF report redesign: white header with a thin accent line instead of
+  a solid blue block (which showed thin white seams in some PDF
+  viewers), 4 summary boxes (Topics done, Progress, Quizzes taken,
+  Average score), and Topic Progress as a real table
+  (# / Topic / Status / Best quiz) styled like the Quiz History table
+- Page 1 now holds up to 4 quiz rows (was 3) before Quiz History moves
+  to page 2
+
 ## [1.3.0] - November 25, 2026
 
 ### Added
