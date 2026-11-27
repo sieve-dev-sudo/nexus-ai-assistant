@@ -444,3 +444,28 @@ def test_progress_mid_quiz_keeps_quiz_going(engine):
     assert "វឌ្ឍនភាពការសិក្សា" in result and "នៅបន្ត" in result
     assert engine._quiz_state["index"] == 0          # nothing skipped
     assert "សំណួរ 2/5" in engine.get_response("C")    # loop Q1 answer is C
+
+
+# ── Reset Progress clears everything the report shows ───────────────────
+def test_reset_clears_quiz_history_and_report(tmp_path):
+    e = LessonEngine(progress_path=tmp_path / "p.json",
+                     quiz_history_path=tmp_path / "q.json")
+    e.get_response("basic")
+    e.get_response("/quiz basic")
+    _answer_all(e, correct=True)
+    e.get_response("/quiz loop")      # a quiz still in progress
+    assert e.quiz_history and e.progress
+
+    e.reset_progress()
+
+    assert e.progress == set() and e.quiz_history == []
+    assert e._quiz_state is None
+    s = e.report_summary()
+    assert (s["done"], s["quizzes_taken"], s["average_pct"]) == (0, 0, None)
+    assert s["best_by_topic"] == {}
+    assert "No quizzes taken yet" in e.build_report_html()
+
+    # And it stays cleared after restarting the app.
+    e2 = LessonEngine(progress_path=tmp_path / "p.json",
+                      quiz_history_path=tmp_path / "q.json")
+    assert e2.progress == set() and e2.quiz_history == []
