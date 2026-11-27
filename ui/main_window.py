@@ -204,15 +204,16 @@ class MainWindow(QMainWindow):
             panel.clear_chat()
 
     def _reset_progress(self):
-        """Reset progress."""
+        """Ask, then clear studied lessons and quiz history."""
         reply = QMessageBox.question(
             self, "Reset Progress",
-            "តើអ្នកប្រាកដថាចង់លុបវឌ្ឍនភាពការសិក្សាទាំងអស់ចោលទេ?",
+            "តើអ្នកប្រាកដថាចង់លុបវឌ្ឍនភាពការសិក្សា "
+            "និងប្រវត្តិ Quiz ទាំងអស់ចោលទេ?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             self._lesson_engine.reset_progress()
-            QMessageBox.information(self, "Reset Progress", "វឌ្ឍនភាពត្រូវបានលុបចោលរួចរាល់។")
+            QMessageBox.information(self, "Reset Progress", "វឌ្ឍនភាព និងប្រវត្តិ Quiz ត្រូវបានលុបចោលរួចរាល់។")
 
     def _open_settings(self):
         """Open settings."""
