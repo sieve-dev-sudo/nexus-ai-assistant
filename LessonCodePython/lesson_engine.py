@@ -240,10 +240,15 @@ class LessonEngine:
             self._save_progress()
 
     def reset_progress(self) -> None:
-        """Public: clear all tracked progress (used by the sidebar's
-        'Reset Progress' button)."""
+        """Public: clear ALL learning data (used by the sidebar's
+        'Reset Progress' button): studied lessons, quiz history and any
+        quiz in progress. Quiz history used to be kept, so /progress and
+        the PDF report still showed old scores after a reset."""
         self.progress = set()
+        self.quiz_history = []
+        self._quiz_state = None
         self._save_progress()
+        self._save_quiz_history()
 
     def _load_quiz_history(self) -> List[Dict[str, Any]]:
         """Read past completed-quiz records from disk, or start empty."""
