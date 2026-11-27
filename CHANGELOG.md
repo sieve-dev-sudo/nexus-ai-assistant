@@ -15,6 +15,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), and uses
 - Page 1 now holds up to 4 quiz rows (was 3) before Quiz History moves
   to page 2
 
+### Fixed
+- Reset Progress now also clears the quiz history (and any quiz in
+  progress); before, `/progress` and the PDF report still showed the
+  old quiz scores after a reset
+
 ## [1.3.0] - November 25, 2026
 
 ### Added
